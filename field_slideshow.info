@@ -1,0 +1,10 @@
+; $Id$
+
+name = Field Slideshow
+description = Provides a Slideshow format for displaying fields.
+core = 7.x
+package = Fields
+
+dependencies[] = image
+
+files[] = field_slideshow.module

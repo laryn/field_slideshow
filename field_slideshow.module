@@ -1,0 +1,160 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Implement a slideshow formatter for fields.
+ */
+ 
+/**
+ * Implements hook_field_formatter_info().
+ */
+function field_slideshow_field_formatter_info() {
+  $formatters = array(
+    'slideshow' => array(
+      'label'       => t('Slideshow'),
+      'field types' => array('image'),
+      'settings'    => array(
+        'slideshow_image_style' => '',
+        'slideshow_image_link' => '',
+      ),
+    ),
+  );
+
+  return $formatters;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function field_slideshow_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $element['slideshow_image_style'] = array(
+    '#title'          => t('Image style'),
+    '#type'           => 'select',
+    '#default_value'  => $settings['slideshow_image_style'],
+    '#empty_option'   => t('None (original image)'),
+    '#options'        => image_style_options(FALSE),
+  );
+
+  $element['slideshow_image_link'] = array(
+    '#title'          => t('Link image to'),
+    '#type'           => 'select',
+    '#default_value'  => $settings['slideshow_image_link'],
+    '#empty_option'   => t('Nothing'),
+    '#options'        => array(
+      'content' => t('Content'),
+      'file'    => t('File'),
+    ),
+  );
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function field_slideshow_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = array();
+
+  $image_styles = image_style_options(FALSE);
+  // Unset possible 'No defined styles' option.
+  unset($image_styles['']);
+  // Styles could be lost because of enabled/disabled modules that defines
+  // their styles in code.
+  if (isset($image_styles[$settings['slideshow_image_style']])) {
+    $summary[] = t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_image_style']]));
+  }
+  else {
+    $summary[] = t('Original image');
+  }
+
+  $link_types = array(
+    'content' => t('Linked to content'),
+    'file' => t('Linked to file'),
+  );
+  // Display this setting only if image is linked.
+  if (isset($link_types[$settings['slideshow_image_link']])) {
+    $summary[] = $link_types[$settings['slideshow_image_link']];
+  }
+
+  return implode('<br />', $summary);
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  // Check if the formatter involves a link.
+  if ($display['settings']['slideshow_image_link'] == 'content') {
+    $uri = entity_uri($entity_type, $entity);
+  }
+  elseif ($display['settings']['slideshow_image_link'] == 'file') {
+    $link_file = TRUE;
+  }
+
+  foreach ($items as $delta => $item) {
+    if (isset($link_file)) {
+      $uri = array(
+        'path' => file_create_url($item['uri']),
+        'options' => array(),
+      );
+    }
+    $element[$delta] = array(
+      '#theme' => 'image_formatter',
+      '#item' => $item,
+      '#image_style' => $display['settings']['slideshow_image_style'],
+      '#path' => isset($uri) ? $uri : '',
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Returns HTML for an image field formatter.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - item: An array of image data.
+ *   - image_style: An optional image style.
+ *   - path: An array containing the link 'path' and link 'options'.
+ *
+ * @ingroup themeable
+ */
+function theme_field_slideshow($variables) {
+  $item = $variables['item'];
+  $image = array(
+    'path' => $item['uri'],
+    'alt' => $item['alt'],
+  );
+  // Do not output an empty 'title' attribute.
+  if (drupal_strlen($item['title']) > 0) {
+    $image['title'] = $item['title'];
+  }
+
+  if ($variables['slideshow_image_style']) {
+    $image['style_name'] = $variables['slideshow_image_style'];
+    $output = theme('image_style', $image);
+  }
+  else {
+    $output = theme('image', $image);
+  }
+
+  if ($variables['path']) {
+    $path = $variables['path']['path'];
+    $options = $variables['path']['options'];
+    // When displaying an image inside a link, the html option must be TRUE.
+    $options['html'] = TRUE;
+    $output = l($output, $path, $options);
+  }
+
+  return $output;
+}

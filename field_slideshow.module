@@ -255,7 +255,7 @@ function theme_field_slideshow($variables) {
 
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
   drupal_add_js('jQuery(document).ready(function () {
-    jQuery(".field-slideshow").cycle({
+    jQuery(".field-slideshow-' . $field_slideshow_id . '").cycle({
       fx  : "' . $variables['fx'] . '"
     });
   });', 'inline');

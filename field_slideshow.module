@@ -5,7 +5,7 @@
  * @file
  * Implement a slideshow formatter for fields.
  */
- 
+
 /**
  * Implements hook_field_formatter_info().
  */
@@ -15,8 +15,10 @@ function field_slideshow_field_formatter_info() {
       'label'       => t('Slideshow'),
       'field types' => array('image'),
       'settings'    => array(
-        'slideshow_image_style' => '',
-        'slideshow_image_link' => '',
+        'slideshow_image_style'   => '',
+        'slideshow_image_link'    => '',
+        'slideshow_image_caption' => '',
+        'slideshow_image_fx'      => 'fade',
       ),
     ),
   );
@@ -50,6 +52,52 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     ),
   );
 
+  $element['slideshow_image_caption'] = array(
+    '#title'          => t('Caption'),
+    '#type'           => 'select',
+    '#default_value'  => $settings['slideshow_image_caption'],
+    '#empty_option'   => t('Nothing'),
+    '#options'        => array(
+      'title'   => t('Title text'),
+      'alt'     => t('Alt text'),
+    ),
+  );
+
+  $element['slideshow_image_fx'] = array(
+    '#title'          => t('Transition effect'),
+    '#type'           => 'select',
+    '#default_value'  => $settings['slideshow_image_fx'],
+    '#options'        => array(
+      'blindX'      => t('blindX'),
+      'blindY'      => t('blindY'),
+      'blindZ'      => t('blindZ'),
+      'cover'       => t('cover'),
+      'curtainX'    => t('curtainX'),
+      'curtainY'    => t('curtainY'),
+      'fade'        => t('fade'),
+      'fadeZoom'    => t('fadeZoom'),
+      'growX'       => t('growX'),
+      'growY'       => t('growY'),
+      'scrollUp'    => t('scrollUp'),
+      'scrollDown'  => t('scrollDown'),
+      'scrollLeft'  => t('scrollLeft'),
+      'scrollRight' => t('scrollRight'),
+      'scrollHorz'  => t('scrollHorz'),
+      'scrollVert'  => t('scrollVert'),
+      'shuffle'     => t('shuffle'),
+      'slideX'      => t('slideX'),
+      'slideY'      => t('slideY'),
+      'toss'        => t('toss'),
+      'turnUp'      => t('turnUp'),
+      'turnDown'    => t('turnDown'),
+      'turnLeft'    => t('turnLeft'),
+      'turnRight'   => t('turnRight'),
+      'uncover'     => t('uncover'),
+      'wipe'        => t('wipe'),
+      'zoom'        => t('zoom'),
+    ),
+  );
+
   return $element;
 }
 
@@ -76,12 +124,23 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
 
   $link_types = array(
     'content' => t('Linked to content'),
-    'file' => t('Linked to file'),
+    'file'    => t('Linked to file'),
   );
   // Display this setting only if image is linked.
   if (isset($link_types[$settings['slideshow_image_link']])) {
     $summary[] = $link_types[$settings['slideshow_image_link']];
   }
+
+  $caption_types = array(
+    'title' => t('Title text'),
+    'alt'   => t('Alt text'),
+  );
+  // Display this setting only if there's a caption.
+  if (isset($caption_types[$settings['slideshow_image_caption']])) {
+    $summary[] = t('Caption : @caption', array('@caption' => $caption_types[$settings['slideshow_image_caption']]));
+  }
+
+  $summary[] = t('Transition effect : @effect', array('@effect' => $settings['slideshow_image_fx']));
 
   return implode('<br />', $summary);
 }
@@ -107,54 +166,99 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
         'options' => array(),
       );
     }
-    $element[$delta] = array(
-      '#theme' => 'image_formatter',
-      '#item' => $item,
-      '#image_style' => $display['settings']['slideshow_image_style'],
-      '#path' => isset($uri) ? $uri : '',
-    );
+    $items[$delta]['path'] = isset($uri) ? $uri : '';
   }
+
+  $element[] = array(
+    '#theme'        => 'field_slideshow',
+    '#items'        => $items,
+    '#image_style'  => $display['settings']['slideshow_image_style'],
+    '#caption'      => $display['settings']['slideshow_image_caption'],
+    '#fx'           => $display['settings']['slideshow_image_fx'],
+  );
 
   return $element;
 }
 
 /**
- * Returns HTML for an image field formatter.
+ * Implements hook_theme().
+ */
+function field_slideshow_theme() {
+  return array(
+    'field_slideshow' => array(
+      'variables' => array('items' => NULL, 'image_style' => NULL, 'caption' => NULL, 'fx' => NULL),
+    ),
+  );
+}
+
+/**
+ * Returns HTML for a slideshow formatter.
  *
  * @param $variables
  *   An associative array containing:
- *   - item: An array of image data.
+ *   - items: An array of images fields.
  *   - image_style: An optional image style.
- *   - path: An array containing the link 'path' and link 'options'.
  *
  * @ingroup themeable
  */
 function theme_field_slideshow($variables) {
-  $item = $variables['item'];
-  $image = array(
-    'path' => $item['uri'],
-    'alt' => $item['alt'],
-  );
-  // Do not output an empty 'title' attribute.
-  if (drupal_strlen($item['title']) > 0) {
-    $image['title'] = $item['title'];
+  // Generate classes
+  static $field_slideshow_id = -1;
+  $field_slideshow_id++;
+  $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx']);
+  if ($variables['caption']) $classes[] = 'caption-' . $variables['caption'];
+  $output = '<div class="' . implode(' ', $classes) . '">';
+
+  // Generate slides
+  $field_slideshow_zebra = 'odd';
+  foreach ($variables['items'] as $item) {
+    $field_slideshow_zebra = ($field_slideshow_zebra == 'odd') ? 'even' : 'odd';
+    $output .= '<div class="field-slideshow-slide ' . $field_slideshow_zebra . '">';
+
+    // Generate the image html
+    $image = array(
+      'path' => $item['uri'],
+      'alt' => $item['alt'],
+    );
+    if (drupal_strlen($item['title']) > 0) {
+      $image['title'] = $item['title'];
+    }
+    if ($variables['image_style']) {
+      $image['style_name'] = $variables['image_style'];
+      $image_output = theme('image_style', $image);
+    }
+    else {
+      $image_output = theme('image', $image);
+    }
+
+    // Generate the caption
+    if ($variables['caption']) {
+      $caption_output = '<div class="field-slideshow-caption">' . $item[$variables['caption']] . '</div>';
+    }
+    else $caption_output = '';
+
+    // Add links if needed
+    if ($item['path']) {
+      $path = $item['path']['path'];
+      $options = $item['path']['options'];
+      // When displaying an image inside a link, the html option must be TRUE.
+      $options['html'] = TRUE;
+      $image_output = l($image_output, $path, $options);
+      if ($variables['caption']) $caption_output = l($caption_output, $path, $options);
+    }
+
+    $output .= $image_output . $caption_output;
+    $output .= '</div>'; // .fied-slideshow-slide div closed
   }
 
-  if ($variables['slideshow_image_style']) {
-    $image['style_name'] = $variables['slideshow_image_style'];
-    $output = theme('image_style', $image);
-  }
-  else {
-    $output = theme('image', $image);
-  }
+  $output .= "</div>"; // .field-slideshow div closed
 
-  if ($variables['path']) {
-    $path = $variables['path']['path'];
-    $options = $variables['path']['options'];
-    // When displaying an image inside a link, the html option must be TRUE.
-    $options['html'] = TRUE;
-    $output = l($output, $path, $options);
-  }
+  drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
+  drupal_add_js('jQuery(document).ready(function () {
+    jQuery(".field-slideshow").cycle({
+      fx  : "' . $variables['fx'] . '"
+    });
+  });', 'inline');
 
   return $output;
 }

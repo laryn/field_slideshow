@@ -232,8 +232,10 @@ function theme_field_slideshow($variables) {
     }
     // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
     preg_match('/\bsrc="(.*)" \b/', $image_output, $matches);
-    $image_dims = getimagesize($matches[1]);
-    $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
+    if (file_exists($matches[1])) {
+      $image_dims = getimagesize($matches[1]);
+      $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
+    }
 
     // Generate the caption
     if ($variables['caption']) {

@@ -16,9 +16,11 @@ function field_slideshow_field_formatter_info() {
       'field types' => array('image'),
       'settings'    => array(
         'slideshow_image_style'   => '',
-        'slideshow_image_link'    => '',
-        'slideshow_image_caption' => '',
-        'slideshow_image_fx'      => 'fade',
+        'slideshow_link'          => '',
+        'slideshow_caption'       => '',
+        'slideshow_fx'            => 'fade',
+        'slideshow_timeout'       => '4000',
+        'slideshow_pager'         => '',
       ),
     ),
   );
@@ -41,10 +43,10 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#options'        => image_style_options(FALSE),
   );
 
-  $element['slideshow_image_link'] = array(
+  $element['slideshow_link'] = array(
     '#title'          => t('Link image to'),
     '#type'           => 'select',
-    '#default_value'  => $settings['slideshow_image_link'],
+    '#default_value'  => $settings['slideshow_link'],
     '#empty_option'   => t('Nothing'),
     '#options'        => array(
       'content' => t('Content'),
@@ -52,10 +54,10 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     ),
   );
 
-  $element['slideshow_image_caption'] = array(
+  $element['slideshow_caption'] = array(
     '#title'          => t('Caption'),
     '#type'           => 'select',
-    '#default_value'  => $settings['slideshow_image_caption'],
+    '#default_value'  => $settings['slideshow_caption'],
     '#empty_option'   => t('Nothing'),
     '#options'        => array(
       'title'   => t('Title text'),
@@ -63,10 +65,10 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     ),
   );
 
-  $element['slideshow_image_fx'] = array(
+  $element['slideshow_fx'] = array(
     '#title'          => t('Transition effect'),
     '#type'           => 'select',
-    '#default_value'  => $settings['slideshow_image_fx'],
+    '#default_value'  => $settings['slideshow_fx'],
     '#options'        => array(
       'blindX'      => t('blindX'),
       'blindY'      => t('blindY'),
@@ -98,6 +100,20 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     ),
   );
 
+  $element['slideshow_timeout'] = array(
+    '#title'          => t('Timeout'),
+    '#type'           => 'textfield',
+    '#size'           => 5,
+    '#default_value'  => $settings['slideshow_timeout'],
+    '#description'    => t('Time between transitions (ms)'),
+  );
+
+  $element['slideshow_pager'] = array(
+    '#title'          => t('Create pager'),
+    '#type'           => 'checkbox',
+    '#default_value'  => $settings['slideshow_pager'],
+  );
+
   return $element;
 }
 
@@ -127,8 +143,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
     'file'    => t('Linked to file'),
   );
   // Display this setting only if image is linked.
-  if (isset($link_types[$settings['slideshow_image_link']])) {
-    $summary[] = $link_types[$settings['slideshow_image_link']];
+  if (isset($link_types[$settings['slideshow_link']])) {
+    $summary[] = $link_types[$settings['slideshow_link']];
   }
 
   $caption_types = array(
@@ -136,11 +152,13 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
     'alt'   => t('Alt text'),
   );
   // Display this setting only if there's a caption.
-  if (isset($caption_types[$settings['slideshow_image_caption']])) {
-    $summary[] = t('Caption : @caption', array('@caption' => $caption_types[$settings['slideshow_image_caption']]));
+  if (isset($caption_types[$settings['slideshow_caption']])) {
+    $summary[] = t('Caption : @caption', array('@caption' => $caption_types[$settings['slideshow_caption']]));
   }
 
-  $summary[] = t('Transition effect : @effect', array('@effect' => $settings['slideshow_image_fx']));
+  $summary[] = t('Transition effect : @effect', array('@effect' => $settings['slideshow_fx']));
+  $summary[] = t('Timeout : @timeout', array('@timeout' => $settings['slideshow_timeout']));
+  if ($settings['slideshow_pager']) $summary[] = t('Create pager');
 
   return implode('<br />', $summary);
 }
@@ -152,17 +170,17 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   $element = array();
 
   // Check if the formatter involves a link.
-  if ($display['settings']['slideshow_image_link'] == 'content') {
+  if ($display['settings']['slideshow_link'] == 'content') {
     $uri = entity_uri($entity_type, $entity);
   }
-  elseif ($display['settings']['slideshow_image_link'] == 'file') {
+  elseif ($display['settings']['slideshow_link'] == 'file') {
     $link_file = TRUE;
   }
 
   foreach ($items as $delta => $item) {
     if (isset($link_file)) {
       $uri = array(
-        'path' => file_create_url($item['uri']),
+        'path'    => file_create_url($item['uri']),
         'options' => array(),
       );
     }
@@ -173,8 +191,10 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     '#theme'        => 'field_slideshow',
     '#items'        => $items,
     '#image_style'  => $display['settings']['slideshow_image_style'],
-    '#caption'      => $display['settings']['slideshow_image_caption'],
-    '#fx'           => $display['settings']['slideshow_image_fx'],
+    '#caption'      => $display['settings']['slideshow_caption'],
+    '#fx'           => $display['settings']['slideshow_fx'],
+    '#timeout'      => $display['settings']['slideshow_timeout'],
+    '#pager'        => $display['settings']['slideshow_pager'],
   );
 
   return $element;
@@ -186,7 +206,14 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
 function field_slideshow_theme() {
   return array(
     'field_slideshow' => array(
-      'variables' => array('items' => NULL, 'image_style' => NULL, 'caption' => NULL, 'fx' => NULL),
+      'variables'     => array(
+        'items'       => NULL,
+        'image_style' => NULL,
+        'caption'     => NULL,
+        'fx'          => NULL,
+        'timeout'     => NULL,
+        'pager'       => NULL,
+      ),
     ),
   );
 }
@@ -231,9 +258,9 @@ function theme_field_slideshow($variables) {
       $image_output = theme('image', $image);
     }
     // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
-    preg_match('/\bsrc="(.*)" \b/', $image_output, $matches);
-    if (file_exists($matches[1])) {
-      $image_dims = getimagesize($matches[1]);
+    preg_match('/\bsrc=".*\/files\/(.*)" \b/', $image_output, $matches);
+    if (file_exists('public://' . $matches[1])) {
+      $image_dims = getimagesize('public://' . $matches[1]);
       $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
     }
 
@@ -260,11 +287,18 @@ function theme_field_slideshow($variables) {
   $output .= "</div>"; // .field-slideshow div closed
 
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
-  drupal_add_js('jQuery(document).ready(function () {
-    jQuery(".field-slideshow-' . $field_slideshow_id . '").cycle({
-      fx  : "' . $variables['fx'] . '"
-    });
-  });', 'inline');
+
+  $js = 'jQuery(document).ready(function () {
+    jQuery(".field-slideshow-' . $field_slideshow_id . '")';
+  if ($variables['pager']) {
+    $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-pager\' class=\'field-slideshow-pager\'>")';
+  }
+  $js .= '.cycle({
+    fx      : "' . $variables['fx'] . '",
+    timeout : "' . $variables['timeout'] .'"
+    ' . ($variables['pager'] ? ',pager : "#field-slideshow-' . $field_slideshow_id . '-pager"' : '') . '
+  }); });';
+  drupal_add_js($js, 'inline');
 
   return $output;
 }

@@ -13,7 +13,7 @@ function field_slideshow_field_formatter_info() {
   $formatters = array(
     'slideshow' => array(
       'label'       => t('Slideshow'),
-      'field types' => array('image'),
+      'field types' => array('image', 'media'),
       'settings'    => array(
         'slideshow_image_style'   => '',
         'slideshow_link'          => '',
@@ -186,6 +186,8 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   }
 
   foreach ($items as $delta => $item) {
+    $items[$delta] = (array) $item; // Media field support
+
     if (isset($link_file)) {
       $uri = array(
         'path'    => file_create_url($item['uri']),

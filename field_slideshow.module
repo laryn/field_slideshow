@@ -315,7 +315,7 @@ function theme_field_slideshow($variables) {
   }
   $js .= '.cycle({
     fx      : "' . $variables['fx'] . '",
-    timeout : "' . $variables['timeout'] .'"
+    timeout : ' . intval($variables['timeout']) .'
     ' . ($variables['pager'] ? ',pager : "#field-slideshow-' . $field_slideshow_id . '-pager"' : '') . '
     ' . ($variables['controls'] ? ',prev : "#field-slideshow-' . $field_slideshow_id . '-controls .prev"' : '') . '
     ' . ($variables['controls'] ? ',next : "#field-slideshow-' . $field_slideshow_id . '-controls .next"' : '') . '

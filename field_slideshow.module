@@ -106,7 +106,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#type'           => 'textfield',
     '#size'           => 5,
     '#default_value'  => $settings['slideshow_timeout'],
-    '#description'    => t('Time between transitions (ms)'),
+    '#description'    => t('Time between transitions (ms). Enter 0 to disable automatic transitions (then, enable pager and/or controls).'),
   );
 
   $element['slideshow_pager'] = array(

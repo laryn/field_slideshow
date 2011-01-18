@@ -21,6 +21,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_fx'            => 'fade',
         'slideshow_timeout'       => '4000',
         'slideshow_pager'         => '',
+        'slideshow_controls'      => '',
       ),
     ),
   );
@@ -114,6 +115,12 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#default_value'  => $settings['slideshow_pager'],
   );
 
+  $element['slideshow_controls'] = array(
+    '#title'          => t('Create prev/next controls'),
+    '#type'           => 'checkbox',
+    '#default_value'  => $settings['slideshow_controls'],
+  );
+
   return $element;
 }
 
@@ -159,6 +166,7 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   $summary[] = t('Transition effect : @effect', array('@effect' => $settings['slideshow_fx']));
   $summary[] = t('Timeout : @timeout', array('@timeout' => $settings['slideshow_timeout']));
   if ($settings['slideshow_pager']) $summary[] = t('Create pager');
+  if ($settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
 
   return implode('<br />', $summary);
 }
@@ -195,6 +203,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     '#fx'           => $display['settings']['slideshow_fx'],
     '#timeout'      => $display['settings']['slideshow_timeout'],
     '#pager'        => $display['settings']['slideshow_pager'],
+    '#controls'     => $display['settings']['slideshow_controls'],
   );
 
   return $element;
@@ -213,6 +222,7 @@ function field_slideshow_theme() {
         'fx'          => NULL,
         'timeout'     => NULL,
         'pager'       => NULL,
+        'controls'    => NULL,
       ),
     ),
   );
@@ -232,9 +242,12 @@ function theme_field_slideshow($variables) {
   // Generate classes
   static $field_slideshow_id = -1;
   $field_slideshow_id++;
-  $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx']);
+  $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
   if ($variables['caption']) $classes[] = 'caption-' . $variables['caption'];
-  $output = '<div class="' . implode(' ', $classes) . '">';
+  if ($variables['pager']) $classes[] = 'with-pager';
+  if ($variables['controls']) $classes[] = 'with-controls';
+  $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
+    <div class="' . implode(' ', $classes) . '">';
 
   // Generate slides
   $field_slideshow_zebra = 'odd';
@@ -284,19 +297,26 @@ function theme_field_slideshow($variables) {
     $output .= '</div>'; // .fied-slideshow-slide div closed
   }
 
-  $output .= "</div>"; // .field-slideshow div closed
+  $output .= "</div></div>"; // .field-slideshow & .field-slideshow-wrapper div closed
 
+  // Add the Cycle plugin
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
 
+  // Generate javascript
   $js = 'jQuery(document).ready(function () {
     jQuery(".field-slideshow-' . $field_slideshow_id . '")';
   if ($variables['pager']) {
-    $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-pager\' class=\'field-slideshow-pager\'>")';
+    $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-pager\' class=\'field-slideshow-pager\'/>")';
+  }
+  if ($variables['controls']) {
+    $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-controls\' class=\'field-slideshow-controls\'><a href=\'#\' class=\'prev\'>' . t('Prev') . '</a><a href=\'#\' class=\'next\'>' . t('Next') . '</a></div>")';
   }
   $js .= '.cycle({
     fx      : "' . $variables['fx'] . '",
     timeout : "' . $variables['timeout'] .'"
     ' . ($variables['pager'] ? ',pager : "#field-slideshow-' . $field_slideshow_id . '-pager"' : '') . '
+    ' . ($variables['controls'] ? ',prev : "#field-slideshow-' . $field_slideshow_id . '-controls .prev"' : '') . '
+    ' . ($variables['controls'] ? ',next : "#field-slideshow-' . $field_slideshow_id . '-controls .next"' : '') . '
   }); });';
   drupal_add_js($js, 'inline');
 

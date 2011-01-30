@@ -263,14 +263,20 @@ function theme_field_slideshow($variables) {
     else {
       $image_output = theme('image', $image);
     }
+
     // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
-    preg_match('/\bsrc=".*\/files\/(.*)" \b/', $image_output, $matches);
-    if (file_exists('public://' . $matches[1])) {
-      $image_dims = getimagesize('public://' . $matches[1]);
-      $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
-      if ($image_dims[0] > $slides_max_width) $slides_max_width = $image_dims[0];
-      if ($image_dims[1] > $slides_max_height) $slides_max_height = $image_dims[1];
+    if ($variables['image_style']) {
+      $image_path = image_style_path($variables['image_style'], $image['path']);
+      // if thumbnail is not generated, do it, so we can get the dimensions
+      if (!file_exists($image_path)) {
+        image_style_create_derivative(image_style_load($variables['image_style']), $image['path'], $image_path);
+      }
     }
+    else $image_path = $image['path'];
+    $image_dims = getimagesize($image_path);
+    $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
+    if ($image_dims[0] > $slides_max_width) $slides_max_width = $image_dims[0];
+    if ($image_dims[1] > $slides_max_height) $slides_max_height = $image_dims[1];
 
     // Generate the caption
     if ($variables['caption']) {

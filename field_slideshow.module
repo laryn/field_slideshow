@@ -239,21 +239,14 @@ function field_slideshow_theme() {
  * @ingroup themeable
  */
 function theme_field_slideshow($variables) {
-  // Generate classes
-  static $field_slideshow_id = -1;
-  $field_slideshow_id++;
-  $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
-  if ($variables['caption']) $classes[] = 'caption-' . $variables['caption'];
-  if ($variables['pager']) $classes[] = 'with-pager';
-  if ($variables['controls']) $classes[] = 'with-controls';
-  $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
-    <div class="' . implode(' ', $classes) . '">';
-
   // Generate slides
   $field_slideshow_zebra = 'odd';
+  $slides_max_width = 0;
+  $slides_max_height = 0;
+  $slides_output = '';
   foreach ($variables['items'] as $item) {
     $field_slideshow_zebra = ($field_slideshow_zebra == 'odd') ? 'even' : 'odd';
-    $output .= '<div class="field-slideshow-slide ' . $field_slideshow_zebra . '">';
+    $slides_output .= '<div class="field-slideshow-slide ' . $field_slideshow_zebra . '">';
 
     // Generate the image html
     $image = array(
@@ -275,6 +268,8 @@ function theme_field_slideshow($variables) {
     if (file_exists('public://' . $matches[1])) {
       $image_dims = getimagesize('public://' . $matches[1]);
       $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
+      if ($image_dims[0] > $slides_max_width) $slides_max_width = $image_dims[0];
+      if ($image_dims[1] > $slides_max_height) $slides_max_height = $image_dims[1];
     }
 
     // Generate the caption
@@ -293,17 +288,27 @@ function theme_field_slideshow($variables) {
       if ($variables['caption']) $caption_output = l($caption_output, $path, $options);
     }
 
-    $output .= $image_output . $caption_output;
-    $output .= '</div>'; // .fied-slideshow-slide div closed
+    $slides_output .= $image_output . $caption_output;
+    $slides_output .= '</div>'; // .fied-slideshow-slide div closed
   }
 
+  // Generate classes
+  static $field_slideshow_id = -1;
+  $field_slideshow_id++;
+  $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
+  if ($variables['caption']) $classes[] = 'caption-' . $variables['caption'];
+  if ($variables['pager']) $classes[] = 'with-pager';
+  if ($variables['controls']) $classes[] = 'with-controls';
+  $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
+    <div class="' . implode(' ', $classes) . '" style="width:' . $slides_max_width . 'px; height:' . $slides_max_height . 'px">';
+  $output .= $slides_output; // adds the slides
   $output .= "</div></div>"; // .field-slideshow & .field-slideshow-wrapper div closed
 
   // Add the Cycle plugin
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
 
   // Generate javascript
-  $js = 'jQuery(document).ready(function () {
+  $js = 'jQuery(window).load(function () {
     jQuery(".field-slideshow-' . $field_slideshow_id . '")';
   if ($variables['pager']) {
     $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-pager\' class=\'field-slideshow-pager\'/>")';
@@ -312,13 +317,16 @@ function theme_field_slideshow($variables) {
     $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-controls\' class=\'field-slideshow-controls\'><a href=\'#\' class=\'prev\'>' . t('Prev') . '</a><a href=\'#\' class=\'next\'>' . t('Next') . '</a></div>")';
   }
   $js .= '.cycle({
-    fx      : "' . $variables['fx'] . '",
-    timeout : ' . intval($variables['timeout']) .'
+    resizing  : 0,
+    fx        : "' . $variables['fx'] . '",
+    timeout   : ' . intval($variables['timeout']) .'
     ' . ($variables['pager'] ? ',pager : "#field-slideshow-' . $field_slideshow_id . '-pager"' : '') . '
     ' . ($variables['controls'] ? ',prev : "#field-slideshow-' . $field_slideshow_id . '-controls .prev"' : '') . '
     ' . ($variables['controls'] ? ',next : "#field-slideshow-' . $field_slideshow_id . '-controls .next"' : '') . '
   }); });';
   drupal_add_js($js, 'inline');
+
+  drupal_add_css(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.css');
 
   return $output;
 }

@@ -19,6 +19,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_link'          => '',
         'slideshow_caption'       => '',
         'slideshow_fx'            => 'fade',
+        'slideshow_speed'         => '1000',
         'slideshow_timeout'       => '4000',
         'slideshow_pager'         => '',
         'slideshow_controls'      => '',
@@ -101,6 +102,13 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     ),
   );
 
+  $element['slideshow_speed'] = array(
+    '#title'          => t('Transition speed'),
+    '#type'           => 'textfield',
+    '#size'           => 5,
+    '#default_value'  => $settings['slideshow_speed'],
+  );
+
   $element['slideshow_timeout'] = array(
     '#title'          => t('Timeout'),
     '#type'           => 'textfield',
@@ -164,6 +172,7 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   }
 
   $summary[] = t('Transition effect : @effect', array('@effect' => $settings['slideshow_fx']));
+  $summary[] = t('Speed : @speed', array('@speed' => $settings['slideshow_speed']));
   $summary[] = t('Timeout : @timeout', array('@timeout' => $settings['slideshow_timeout']));
   if ($settings['slideshow_pager']) $summary[] = t('Create pager');
   if ($settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
@@ -203,6 +212,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     '#image_style'  => $display['settings']['slideshow_image_style'],
     '#caption'      => $display['settings']['slideshow_caption'],
     '#fx'           => $display['settings']['slideshow_fx'],
+    '#speed'        => $display['settings']['slideshow_speed'],
     '#timeout'      => $display['settings']['slideshow_timeout'],
     '#pager'        => $display['settings']['slideshow_pager'],
     '#controls'     => $display['settings']['slideshow_controls'],
@@ -221,6 +231,7 @@ function field_slideshow_theme() {
         'items'       => NULL,
         'image_style' => NULL,
         'caption'     => NULL,
+        'speed'       => NULL,
         'fx'          => NULL,
         'timeout'     => NULL,
         'pager'       => NULL,
@@ -327,7 +338,9 @@ function theme_field_slideshow($variables) {
   $js .= '.cycle({
     resizing  : 0,
     fx        : "' . $variables['fx'] . '",
+    speed     : "' . $variables['speed'] . '",
     timeout   : ' . intval($variables['timeout']) .'
+    ' . (($variables['speed'] == 0 && $variables['timeout'] == 0) ? ',fastOnEvent : true' : '') . '
     ' . ($variables['pager'] ? ',pager : "#field-slideshow-' . $field_slideshow_id . '-pager"' : '') . '
     ' . ($variables['controls'] ? ',prev : "#field-slideshow-' . $field_slideshow_id . '-controls .prev"' : '') . '
     ' . ($variables['controls'] ? ',next : "#field-slideshow-' . $field_slideshow_id . '-controls .next"' : '') . '

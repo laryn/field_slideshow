@@ -346,8 +346,8 @@ function theme_field_slideshow($variables) {
   static $field_slideshow_id = -1;
   $field_slideshow_id++;
   $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
-  if ($variables['caption']) $classes[] = 'caption-' . $variables['caption'];
-  if ($variables['pager']) $classes[] = 'with-pager';
+  if ($variables['caption'] != '') $classes[] = 'caption-' . $variables['caption'];
+  if ($variables['pager'] != '') $classes[] = 'with-pager';
   if ($variables['controls']) $classes[] = 'with-controls';
   $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
     <div class="' . implode(' ', $classes) . '" style="width:' . $slides_max_width . 'px; height:' . $slides_max_height . 'px">';
@@ -357,17 +357,23 @@ function theme_field_slideshow($variables) {
   // Add the Cycle plugin
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
 
-  // Generate javascript
+  // Begin javascript generation
   $js = 'jQuery(window).load(function () {
     jQuery(".field-slideshow-' . $field_slideshow_id . '")';
+
+  // Add Caption height if exists
+  if ($variables['caption'] != '') $js .= '.css("padding-bottom", (jQuery(".field-slideshow-' . $field_slideshow_id . ' .field-slideshow-caption").outerHeight() + parseInt(jQuery(".field-slideshow-' . $field_slideshow_id . ' .field-slideshow-slide img").css("margin-bottom"))) + "px")';
+
   // Create Pager wrapper
   if ($variables['pager'] != '') {
     $js .= '.after("<' . ($variables['pager'] == 'image' ? 'ul' : 'div') . ' id=\'field-slideshow-' . $field_slideshow_id . '-pager\' class=\'field-slideshow-pager\'/>")';
   }
+
   // Create Controls
   if ($variables['controls']) {
     $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-controls\' class=\'field-slideshow-controls\'><a href=\'#\' class=\'prev\'>' . t('Prev') . '</a><a href=\'#\' class=\'next\'>' . t('Next') . '</a></div>")';
   }
+
   // Add options
   $js .= '.cycle({
     resizing  : 0,

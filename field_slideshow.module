@@ -289,8 +289,12 @@ function theme_field_slideshow($variables) {
   $slides_max_height = 0;
   $slides_output = '';
   foreach ($variables['items'] as $item) {
+    $classes = array('field-slideshow-slide');
     $field_slideshow_zebra = ($field_slideshow_zebra == 'odd') ? 'even' : 'odd';
-    $slides_output .= '<div class="field-slideshow-slide ' . $field_slideshow_zebra . '">';
+    $classes[] = $field_slideshow_zebra;
+    if ($num == 0) $classes[] = 'first';
+    elseif ($num == count($variables['items']) - 1) $classes[] = 'last';
+    $slides_output .= '<div class="' . implode(' ', $classes) . '"' . ($num != 0 ? ' style="display:none;"' : '') . '>';
 
     // Generate the image html
     $image = array(

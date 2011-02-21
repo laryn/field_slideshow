@@ -192,7 +192,13 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   // Display this setting only if image is linked.
   if (isset($link_types[$settings['slideshow_link']])) {
     $link_type_message = $link_types[$settings['slideshow_link']];
-    if ($settings['slideshow_link'] == 'colorbox') $link_type_message .= ' (' . t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_colorbox_image_style']])) . ')';
+    if ($settings['slideshow_link'] == 'colorbox') {
+      $link_type_message .= ' (';
+      if (isset($image_styles[$settings['slideshow_colorbox_image_style']])) {
+        $link_type_message .= t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_colorbox_image_style']]));
+      } else $link_type_message .=  t('Original image');
+      $link_type_message .= ')';
+    }
     $summary[] = $link_type_message;
   }
 
@@ -252,7 +258,10 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
         'options' => array(),
       );
       if ($display['settings']['slideshow_link'] == 'colorbox') {
-        $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
+        // check if we need a thumbnaill and change the link
+        if ($display['settings']['slideshow_colorbox_image_style'] != '') {
+          $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
+        }
         $uri['options']['attributes'] = array(
           'class' => array('colorbox'),
           'rel'   => 'field-slideshow',

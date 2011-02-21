@@ -27,6 +27,7 @@ function field_slideshow_field_formatter_info() {
       ),
     ),
   );
+  if (module_exists('colorbox')) $formatters['slideshow']['settings']['slideshow_colorbox_image_style'] = '';
 
   return $formatters;
 }
@@ -56,6 +57,22 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       'file'    => t('File'),
     ),
   );
+
+  if (module_exists('colorbox')) {
+    $element['slideshow_link']['#options']['colorbox'] = 'Colorbox';
+    $element['slideshow_colorbox_image_style'] = array(
+      '#title'          => t('Colorbox image style'),
+      '#type'           => 'select',
+      '#default_value'  => $settings['slideshow_colorbox_image_style'],
+      '#empty_option'   => t('None (original image)'),
+      '#options'        => image_style_options(FALSE),
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[settings_edit_form][settings][slideshow_link]"]' => array('value' => 'colorbox'),
+        ),
+      ),
+    );
+  }
 
   $element['slideshow_caption'] = array(
     '#title'          => t('Caption'),
@@ -168,12 +185,15 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   else $summary[] = t('Original image');
 
   $link_types = array(
-    'content' => t('Linked to content'),
-    'file'    => t('Linked to file'),
+    'content'   => t('Linked to content'),
+    'file'      => t('Linked to file'),
+    'colorbox'  => t('Linked to Colorbox'),
   );
   // Display this setting only if image is linked.
   if (isset($link_types[$settings['slideshow_link']])) {
-    $summary[] = $link_types[$settings['slideshow_link']];
+    $link_type_message = $link_types[$settings['slideshow_link']];
+    if ($settings['slideshow_link'] == 'colorbox') $link_type_message .= ' (' . t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_colorbox_image_style']])) . ')';
+    $summary[] = $link_type_message;
   }
 
   $caption_types = array(
@@ -219,7 +239,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if ($display['settings']['slideshow_link'] == 'content') {
     $uri = entity_uri($entity_type, $entity);
   }
-  elseif ($display['settings']['slideshow_link'] == 'file') {
+  elseif ($display['settings']['slideshow_link'] == 'file' || $display['settings']['slideshow_link'] == 'colorbox') {
     $link_file = TRUE;
   }
 
@@ -231,6 +251,13 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
         'path'    => file_create_url($item['uri']),
         'options' => array(),
       );
+      if ($display['settings']['slideshow_link'] == 'colorbox') {
+        $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
+        $uri['options']['attributes'] = array(
+          'class' => array('colorbox'),
+          'rel'   => 'field-slideshow',
+        );
+      }
     }
     $items[$delta]['path'] = isset($uri) ? $uri : '';
   }
@@ -288,7 +315,7 @@ function theme_field_slideshow($variables) {
   $slides_max_width = 0;
   $slides_max_height = 0;
   $slides_output = '';
-  foreach ($variables['items'] as $item) {
+  foreach ($variables['items'] as $num => $item) {
     $classes = array('field-slideshow-slide');
     $field_slideshow_zebra = ($field_slideshow_zebra == 'odd') ? 'even' : 'odd';
     $classes[] = $field_slideshow_zebra;
@@ -339,7 +366,10 @@ function theme_field_slideshow($variables) {
       // When displaying an image inside a link, the html option must be TRUE.
       $options['html'] = TRUE;
       $image_output = l($image_output, $path, $options);
-      if ($variables['caption']) $caption_output = l($caption_output, $path, $options);
+      if ($variables['caption']) {
+        if (isset($options['attributes']['rel'])) $options['attributes']['rel'] .= '-caption'; // needed for colorbox, so caption doesn't mess with image rel's
+        $caption_output = l($caption_output, $path, $options);
+      }
     }
 
     $slides_output .= $image_output . $caption_output;

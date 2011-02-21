@@ -196,7 +196,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
       $link_type_message .= ' (';
       if (isset($image_styles[$settings['slideshow_colorbox_image_style']])) {
         $link_type_message .= t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_colorbox_image_style']]));
-      } else $link_type_message .=  t('Original image');
+      }
+      else $link_type_message .=  t('Original image');
       $link_type_message .= ')';
     }
     $summary[] = $link_type_message;

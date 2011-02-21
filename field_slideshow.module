@@ -430,13 +430,11 @@ function theme_field_slideshow($variables) {
     if ($variables['pager'] != '') {
       $js .= ',pager : "#field-slideshow-' . $field_slideshow_id . '-pager"';
       if ($variables['pager'] == 'image') {
-        $path_parts = explode('/', image_style_url($variables['pager_image_style'], $variables['items'][0]['uri']));
-        array_pop($path_parts);
-        $path = implode('/', $path_parts) . '/';
-        $js .= ',pagerAnchorBuilder: function(idx, slide) { ' .
-          "filename = jQuery(slide).find('img')[0].src.split('/').pop(); " .
-          "src = '" . $path . "' + filename; " .
-          'return ' . "'" . '<li><a href="#"><img src="' . "' + src + '" . '" /></a></li>' . "'" . '; }';
+        $thumbnails = array();
+        foreach ($variables['items'] as $num => $item) $thumbnails[$num] = image_style_url($variables['pager_image_style'], $item['uri']);
+        drupal_add_js(array('field_slideshow' => array('thumbnails' => $thumbnails)), 'setting');
+        $js .= ',pagerAnchorBuilder: function(idx, slide) {' .
+          'return ' . "'" . '<li><a href="#"><img src="' . "' + Drupal.settings.field_slideshow.thumbnails[idx] + '" . '" /></a></li>' . "'" . '; }';
       }
     }
 

@@ -18,6 +18,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_image_style'       => '',
         'slideshow_link'              => '',
         'slideshow_caption'           => '',
+        'slideshow_caption_link'      => '',
         'slideshow_fx'                => 'fade',
         'slideshow_speed'             => '1000',
         'slideshow_timeout'           => '4000',
@@ -57,7 +58,6 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       'file'    => t('File'),
     ),
   );
-
   if (module_exists('colorbox')) {
     $element['slideshow_link']['#options']['colorbox'] = 'Colorbox';
     $element['slideshow_colorbox_image_style'] = array(
@@ -84,6 +84,23 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       'alt'     => t('Alt text'),
     ),
   );
+
+  $element['slideshow_caption_link'] = array(
+    '#title'          => t('Caption link'),
+    '#type'           => 'select',
+    '#default_value'  => $settings['slideshow_caption_link'],
+    '#empty_option'   => t('Nothing'),
+    '#options'        => array(
+      'content' => t('Content'),
+      'file'    => t('File'),
+    ),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_caption]"]' => array('value' => ''),
+      ),
+    ),
+  );
+  if (module_exists('colorbox')) $element['slideshow_caption_link']['#options']['colorbox'] = 'Colorbox';
 
   $element['slideshow_fx'] = array(
     '#title'          => t('Transition effect'),
@@ -209,7 +226,9 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   );
   // Display this setting only if there's a caption.
   if (isset($caption_types[$settings['slideshow_caption']])) {
-    $summary[] = t('Caption : @caption', array('@caption' => $caption_types[$settings['slideshow_caption']]));
+    $caption_message = t('Caption : @caption', array('@caption' => $caption_types[$settings['slideshow_caption']]));
+    if (isset($link_types[$settings['slideshow_caption_link']])) $caption_message .= ' (' . $link_types[$settings['slideshow_caption_link']] . ')';
+    $summary[] = $caption_message;
   }
 
   $summary[] = t('Transition effect: @effect', array('@effect' => $settings['slideshow_fx']));
@@ -241,35 +260,44 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
  */
 function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
+  $links = array(
+    'slideshow_link'          => 'path',
+    'slideshow_caption_link'  => 'caption_path',
+  );
+  // Loop thru required links (because image and caption can have different links)
+  foreach ($links as $setting => $path) {
 
-  // Check if the formatter involves a link.
-  if ($display['settings']['slideshow_link'] == 'content') {
-    $uri = entity_uri($entity_type, $entity);
-  }
-  elseif ($display['settings']['slideshow_link'] == 'file' || $display['settings']['slideshow_link'] == 'colorbox') {
-    $link_file = TRUE;
-  }
-
-  foreach ($items as $delta => $item) {
-    $items[$delta] = (array) $item; // Media field support
-
-    if (isset($link_file)) {
-      $uri = array(
-        'path'    => file_create_url($item['uri']),
-        'options' => array(),
-      );
-      if ($display['settings']['slideshow_link'] == 'colorbox') {
-        // check if we need a thumbnaill and change the link
-        if ($display['settings']['slideshow_colorbox_image_style'] != '') {
-          $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
-        }
-        $uri['options']['attributes'] = array(
-          'class' => array('colorbox'),
-          'rel'   => 'field-slideshow',
-        );
-      }
+    // Check if the formatter involves a link.
+    if ($display['settings'][$setting] == 'content') {
+      $uri = entity_uri($entity_type, $entity);
     }
-    $items[$delta]['path'] = isset($uri) ? $uri : '';
+    elseif ($display['settings'][$setting] == 'file' || $display['settings'][$setting] == 'colorbox') {
+      $link_file = TRUE;
+    }
+
+    foreach ($items as $delta => $item) {
+      $items[$delta] = (array) $item; // Media field support
+
+      if (isset($link_file)) {
+        $uri = array(
+          'path'    => file_create_url($item['uri']),
+          'options' => array(),
+        );
+        if ($display['settings'][$setting] == 'colorbox') {
+          // check if we need a thumbnaill and change the link
+          if ($display['settings']['slideshow_colorbox_image_style'] != '') {
+            $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
+          }
+          $uri['options']['attributes'] = array(
+            'class' => array('colorbox'),
+            'rel'   => 'field-slideshow',
+          );
+        }
+      }
+      $items[$delta][$path] = isset($uri) ? $uri : '';
+    }
+    unset($uri, $link_file); // unset for next loop;
+
   }
 
   $element[] = array(
@@ -370,15 +398,18 @@ function theme_field_slideshow($variables) {
     else $caption_output = '';
 
     // Add links if needed
-    if ($item['path']) {
-      $path = $item['path']['path'];
-      $options = $item['path']['options'];
-      // When displaying an image inside a link, the html option must be TRUE.
-      $options['html'] = TRUE;
-      $image_output = l($image_output, $path, $options);
-      if ($variables['caption']) {
-        if (isset($options['attributes']['rel'])) $options['attributes']['rel'] .= '-caption'; // needed for colorbox, so caption doesn't mess with image rel's
-        $caption_output = l($caption_output, $path, $options);
+    $links = array('path' => 'image_output');
+    if ($variables['caption']) $links['caption_path'] = 'caption_output';
+    // Loop thru required links (because image and caption can have different links)
+    foreach ($links as $link => $out) {
+      if ($item[$link]) {
+        $path = $item[$link]['path'];
+        $options = $item[$link]['options'];
+        // When displaying an image inside a link, the html option must be TRUE.
+        $options['html'] = TRUE;
+        // Generate differnet rel attribute for image and caption, so colorbox doesn't double the image list
+        if (isset($options['attributes']['rel'])) $options['attributes']['rel'] .= $out;
+        $$out = l($$out, $path, $options);
       }
     }
 

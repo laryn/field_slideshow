@@ -1,4 +1,3 @@
-; $Id$
 
 name = Field Slideshow
 description = Provides a Slideshow format for displaying Image or Media fields.

@@ -16,7 +16,7 @@ Compared to Views slideshows, building the slideshow from multiple nodes, this m
 3 - Select "Manage display" for a content type that contains a multi-valued Image field
 4 - In the Format column, under "Format", you can now choose "Slideshow"
 5 - Click the settings cog to display the available options
-6 - Save! and here you go�
+6 - Save! and here you go.
 
 
 --- AVAILABLE OPTIONS ---------------------------------------------------
@@ -34,5 +34,5 @@ Integration with Colorbox.
 
 
 
-Written by J�r�me Danthinne
+Written by Jerome Danthinne
 http://www.grincheux.be

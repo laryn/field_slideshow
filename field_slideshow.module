@@ -24,6 +24,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_pager'             => '',
         'slideshow_pager_image_style' => '',
         'slideshow_controls'          => '',
+        'slideshow_pause'             => '',
       ),
     ),
   );
@@ -177,6 +178,12 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#type'           => 'checkbox',
     '#default_value'  => $settings['slideshow_controls'],
   );
+  
+  $element['slideshow_pause'] = array(
+    '#title'          => t('Pause on hover'),
+    '#type'           => 'checkbox',
+    '#default_value'  => $settings['slideshow_pause'],
+  );
 
   return $element;
 }
@@ -250,6 +257,7 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   }
 
   if ($settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
+  if ($settings['slideshow_pause']) $summary[] = t('Pause on hover');
 
   return implode('<br />', $summary);
 }
@@ -310,6 +318,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     '#pager'              => $display['settings']['slideshow_pager'],
     '#pager_image_style'  => $display['settings']['slideshow_pager_image_style'],
     '#controls'           => $display['settings']['slideshow_controls'],
+    '#pause'              => $display['settings']['slideshow_pause'],
   );
 
   return $element;
@@ -331,6 +340,7 @@ function field_slideshow_theme() {
         'pager'             => NULL,
         'pager_image_style' => NULL,
         'controls'          => NULL,
+        'pause'             => NULL,
       ),
     ),
   );
@@ -469,6 +479,8 @@ function theme_field_slideshow($variables) {
     }
 
     if ($variables['controls']) $js .= ',prev : "#field-slideshow-' . $field_slideshow_id . '-controls .prev",next : "#field-slideshow-' . $field_slideshow_id . '-controls .next"';
+
+    if ($variables['pause']) $js .= ',pause : true';
 
   $js .= '}); });';
   drupal_add_js($js, 'inline');

@@ -438,53 +438,20 @@ function theme_field_slideshow($variables) {
   $output .= $slides_output; // adds the slides
   $output .= "</div></div>"; // .field-slideshow & .field-slideshow-wrapper div closed
 
-  // Add the Cycle plugin
+  // Add the Cycle plugin and the Js code
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
+  drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/field_slideshow.js');
 
-  // Begin javascript generation
-  $js = 'jQuery(window).load(function () {
-    jQuery(".field-slideshow-' . $field_slideshow_id . '")';
-
-  // Add Caption height if exists
-  if ($variables['caption'] != '') $js .= '.css("padding-bottom", (jQuery(".field-slideshow-' . $field_slideshow_id . ' .field-slideshow-caption").outerHeight() + parseInt(jQuery(".field-slideshow-' . $field_slideshow_id . ' .field-slideshow-slide img").css("margin-bottom"))) + "px")';
-
-  // Create Pager wrapper
-  if ($variables['pager'] != '') {
-    $js .= '.after("<' . ($variables['pager'] == 'image' ? 'ul' : 'div') . ' id=\'field-slideshow-' . $field_slideshow_id . '-pager\' class=\'field-slideshow-pager\'/>")';
+  // Add thumbnails urls if needed
+  if ($variables['pager'] == 'image') {
+    foreach ($variables['items'] as $num => $item) $variables['pager_thumbnails'][$num] = image_style_url($variables['pager_image_style'], $item['uri']);
   }
 
-  // Create Controls
-  if ($variables['controls']) {
-    $js .= '.after("<div id=\'field-slideshow-' . $field_slideshow_id . '-controls\' class=\'field-slideshow-controls\'><a href=\'#\' class=\'prev\'>' . t('Prev') . '</a><a href=\'#\' class=\'next\'>' . t('Next') . '</a></div>")';
-  }
+  // Add js variables
+  unset($variables['items']);
+  drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $field_slideshow_id => $variables)), 'setting');
 
-  // Add options
-  $js .= '.cycle({
-    resizing  : 0,
-    fx        : "' . $variables['fx'] . '",
-    speed     : "' . $variables['speed'] . '",
-    timeout   : ' . intval($variables['timeout']);
-
-    if ($variables['speed'] == 0 && $variables['timeout'] == 0) $js .= ',fastOnEvent : true';
-
-    if ($variables['pager'] != '') {
-      $js .= ',pager : "#field-slideshow-' . $field_slideshow_id . '-pager"';
-      if ($variables['pager'] == 'image') {
-        $thumbnails = array();
-        foreach ($variables['items'] as $num => $item) $thumbnails[$num] = image_style_url($variables['pager_image_style'], $item['uri']);
-        drupal_add_js(array('field_slideshow' => array('thumbnails' => $thumbnails)), 'setting');
-        $js .= ',pagerAnchorBuilder: function(idx, slide) {' .
-          'return ' . "'" . '<li><a href="#"><img src="' . "' + Drupal.settings.field_slideshow.thumbnails[idx] + '" . '" /></a></li>' . "'" . '; }';
-      }
-    }
-
-    if ($variables['controls']) $js .= ',prev : "#field-slideshow-' . $field_slideshow_id . '-controls .prev",next : "#field-slideshow-' . $field_slideshow_id . '-controls .next"';
-
-    if ($variables['pause']) $js .= ',pause : true';
-
-  $js .= '}); });';
-  drupal_add_js($js, 'inline');
-
+  // Add css
   drupal_add_css(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.css');
 
   return $output;

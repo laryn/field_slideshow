@@ -29,6 +29,7 @@ Transition speed
 Timeout
 Pager (numbers or thumbnails)
 Prev/Next controls
+Pause on hover
 
 Integration with Colorbox.
 

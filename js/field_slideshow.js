@@ -7,18 +7,18 @@
         var slideshow = $('.' + i);
 
         // Add padding if needed
-        var padding = [0, 0, 0, 0];
-        var props = ['margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width'];
-        $('.field-slideshow-slide:first,.field-slideshow-slide a:first,.field-slideshow-slide img:first').each(function() {
+        var max_outerWidth = 0;
+        var max_outerHeight = 0;
+        $('.field-slideshow-slide', slideshow).each(function() {
           $this = $(this);
-          for (p in props) padding[p%4] += parseInt($this.css(props[p]));
+          max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
+          max_outerHeight = Math.max(max_outerWidth, $this.outerHeight(true));
         });
-        if (settings.caption != '') padding[2] += $("." + i + " .field-slideshow-caption").outerHeight();
+        max_outerWidth -= parseInt(slideshow.css('width'));
+        max_outerHeight -= parseInt(slideshow.css('height'));
         slideshow.css({
-          'padding-top': padding[0] + 'px',
-          'padding-right': padding[1] + 'px',
-          'padding-bottom': padding[2] + 'px',
-          'padding-left': padding[3] + 'px'
+          'padding-right': max_outerWidth + 'px',
+          'padding-bottom': max_outerHeight + 'px'
         });
 
         // Create Pager wrapper

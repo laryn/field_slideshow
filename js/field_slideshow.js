@@ -14,11 +14,9 @@
           max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
           max_outerHeight = Math.max(max_outerWidth, $this.outerHeight(true));
         });
-        max_outerWidth -= parseInt(slideshow.css('width'));
-        max_outerHeight -= parseInt(slideshow.css('height'));
         slideshow.css({
-          'padding-right': max_outerWidth + 'px',
-          'padding-bottom': max_outerHeight + 'px'
+          'padding-right': (max_outerWidth - parseInt(slideshow.css('width'))) + 'px',
+          'padding-bottom': (max_outerHeight - parseInt(slideshow.css('height'))) + 'px'
         });
 
         // Create Pager wrapper

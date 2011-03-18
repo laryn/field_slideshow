@@ -256,8 +256,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
     break;
   }
 
-  if ($settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
-  if ($settings['slideshow_pause']) $summary[] = t('Pause on hover');
+  if (isset($settings['slideshow_controls']) && $settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
+  if (isset($settings['slideshow_pause']) && $settings['slideshow_pause']) $summary[] = t('Pause on hover');
 
   return implode('<br />', $summary);
 }

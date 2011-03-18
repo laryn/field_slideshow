@@ -178,7 +178,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#type'           => 'checkbox',
     '#default_value'  => $settings['slideshow_controls'],
   );
-  
+
   $element['slideshow_pause'] = array(
     '#title'          => t('Pause on hover'),
     '#type'           => 'checkbox',

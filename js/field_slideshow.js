@@ -12,7 +12,7 @@
         $('.field-slideshow-slide', slideshow).each(function() {
           $this = $(this);
           max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
-          max_outerHeight = Math.max(max_outerWidth, $this.outerHeight(true));
+          max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
         });
         slideshow.css({
           'padding-right': (max_outerWidth - parseInt(slideshow.css('width'))) + 'px',

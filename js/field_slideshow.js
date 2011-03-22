@@ -19,8 +19,8 @@
           'padding-bottom': (max_outerHeight - parseInt(slideshow.css('height'))) + 'px'
         });
 
-        // Create Pager wrapper
-        if (settings.pager != '') slideshow.after("<" + (settings.pager == 'image' ? 'ul' : 'div') + " id='" + i + "-pager' class='field-slideshow-pager'/>");
+        // Create Pager wrapper (if not image)
+        if (settings.pager != '' && settings.pager != 'image') slideshow.after("<div id='" + i + "-pager' class='field-slideshow-pager'/>");
 
         // Create Controls
         if (settings.controls) slideshow.after("<div id='" + i + "-controls' class='field-slideshow-controls'><a href='#' class='prev'>" + Drupal.t('Prev') + "</a> <a href='#' class='next'>" + Drupal.t('Next') + "</a></div>");
@@ -43,7 +43,7 @@
         if (settings.pager != '') {
           options.pager = "#" + i + "-pager";
           if (settings.pager == 'image') options.pagerAnchorBuilder = function(idx, slide) {
-            return '<li><a href="#"><img src="' + settings.pager_thumbnails[idx] + '"/></a></li>';
+            return '#' + i + '-pager li:eq(' + idx + ') a';
           };
         }
 

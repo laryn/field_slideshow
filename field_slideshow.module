@@ -435,33 +435,41 @@ function theme_field_slideshow($variables) {
   if ($variables['controls']) $classes[] = 'with-controls';
   $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
     <div class="' . implode(' ', $classes) . '" style="width:' . $slides_max_width . 'px; height:' . $slides_max_height . 'px">';
-  $output .= $slides_output; // adds the slides
-  $output .= "</div>"; // .field-slideshow & .field-slideshow-wrapper div closed
 
-  // Add thumbnails if needed
-  if ($variables['pager'] == 'image') {
-    $output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager">';
-    foreach ($variables['items'] as $num => $item) {
-      $image = array(
-        'path' => $item['uri'],
-        'alt' => $item['alt'],
-      );
-      if (drupal_strlen($item['title']) > 0) {
-        $image['title'] = $item['title'];
-      }
-      if ($variables['pager_image_style']) {
-        $image['style_name'] = $variables['pager_image_style'];
-        $image_output = theme('image_style', $image);
-      }
-      else {
-        $image_output = theme('image', $image);
-      }
-      $output .= '<li><a href="#">' . theme('image_style', $image) . '</a></li>';
-    }
-    $output .= '</ul>';
+  $output .= $slides_output; // adds the slides
+  $output .= '</div>'; // .field-slideshow & .field-slideshow-wrapper div closed
+
+  // Add controls if needed
+  if ($variables['controls']) {
+    $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-controls" class="field-slideshow-controls"><a href="#" class="prev">' . t('Prev') . '</a> <a href="#" class="next">' . t('Next') . '</a></div>';
   }
 
-  $output .= "</div>"; // .field-slideshow-wrapper div closed
+  // Add thumbnails if needed
+  if ($variables['pager'] != '') {
+    $output .= '<' . ($variables['pager'] == 'image' ? 'ul' : 'div') . ' id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager">';
+    if ($variables['pager'] == 'image') {
+      foreach ($variables['items'] as $num => $item) {
+        $image = array(
+          'path' => $item['uri'],
+          'alt' => $item['alt'],
+        );
+        if (drupal_strlen($item['title']) > 0) {
+          $image['title'] = $item['title'];
+        }
+        if ($variables['pager_image_style']) {
+          $image['style_name'] = $variables['pager_image_style'];
+          $image_output = theme('image_style', $image);
+        }
+        else {
+          $image_output = theme('image', $image);
+        }
+        $output .= '<li><a href="#">' . theme('image_style', $image) . '</a></li>';
+      }
+    }
+    $output .= '</' . ($variables['pager'] == 'image' ? 'ul' : 'div') . '>';
+  }
+
+  $output .= '</div>'; // .field-slideshow-wrapper div closed
 
   // Add the Cycle plugin and the Js code
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');

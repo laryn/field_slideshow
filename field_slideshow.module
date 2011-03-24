@@ -299,6 +299,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             'class' => array('colorbox'),
             'rel'   => 'field-slideshow',
           );
+          if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item[$display['settings']['slideshow_caption']];
         }
       }
       $items[$delta][$path] = isset($uri) ? $uri : '';

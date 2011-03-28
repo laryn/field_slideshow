@@ -21,10 +21,14 @@ function field_slideshow_field_formatter_info() {
         'slideshow_fx'                => 'fade',
         'slideshow_speed'             => '1000',
         'slideshow_timeout'           => '4000',
-        'slideshow_pager'             => '',
-        'slideshow_pager_image_style' => '',
         'slideshow_controls'          => 0,
         'slideshow_pause'             => 0,
+        'slideshow_pager'             => '',
+        'slideshow_pager_image_style' => '',
+        'slideshow_carousel_visible'  => '3',
+        'slideshow_carousel_scroll'   => '1',
+        'slideshow_carousel_speed'    => '500',
+        'slideshow_carousel_vertical' => 0,
       ),
     ),
   );
@@ -152,10 +156,22 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#description'    => t('Time between transitions (ms). Enter 0 to disable automatic transitions (then, enable pager and/or controls).'),
   );
 
+  $element['slideshow_controls'] = array(
+    '#title'          => t('Create prev/next controls'),
+    '#type'           => 'checkbox',
+    '#default_value'  => $settings['slideshow_controls'],
+  );
+
+  $element['slideshow_pause'] = array(
+    '#title'          => t('Pause on hover'),
+    '#type'           => 'checkbox',
+    '#default_value'  => $settings['slideshow_pause'],
+  );
+
   $element['slideshow_pager'] = array(
     '#title'          => t('Pager'),
     '#type'           => 'select',
-    '#options'        => array('number' => 'Slide number', 'image' => 'Image'),
+    '#options'        => array('number' => 'Slide number', 'image' => 'Image', 'carousel' => 'Carousel'),
     '#empty_option'   => t('None'),
     '#default_value'  => $settings['slideshow_pager'],
   );
@@ -168,21 +184,59 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#options'        => image_style_options(FALSE),
     '#states' => array(
       'visible' => array(
-        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'image'),
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'image', 'value' => 'carousel'),
+      ),
+    ),
+  );
+  
+  $element['slideshow_carousel_visible'] = array(
+    '#title'          => t('Carousel: Number of visible images'),
+    '#type'           => 'textfield',
+    '#size'           => 2,
+    '#default_value'  => $settings['slideshow_carousel_visible'],
+    '#description'    => t('The number of images that are visible in the pager. Defaults to 3.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'carousel'),
+      ),
+    ),
+  );
+  
+  $element['slideshow_carousel_scroll'] = array(
+    '#title'          => t('Carousel: Number of images to scroll by'),
+    '#type'           => 'textfield',
+    '#size'           => 2,
+    '#default_value'  => $settings['slideshow_carousel_scroll'],
+    '#description'    => t('The number of images scrolled with each click. Defaults to 1.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'carousel'),
       ),
     ),
   );
 
-  $element['slideshow_controls'] = array(
-    '#title'          => t('Create prev/next controls'),
-    '#type'           => 'checkbox',
-    '#default_value'  => $settings['slideshow_controls'],
+  $element['slideshow_carousel_speed'] = array(
+    '#title'          => t('Carousel: Transition speed'),
+    '#type'           => 'textfield',
+    '#size'           => 5,
+    '#default_value'  => $settings['slideshow_carousel_speed'],
+    '#description'    => t('Speed of the Carousel scroll. Defaults to 500.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'carousel'),
+      ),
+    ),
   );
 
-  $element['slideshow_pause'] = array(
-    '#title'          => t('Pause on hover'),
+  $element['slideshow_carousel_vertical'] = array(
+    '#title'          => t('Vertical Carousel'),
     '#type'           => 'checkbox',
-    '#default_value'  => $settings['slideshow_pause'],
+    '#default_value'  => $settings['slideshow_carousel_vertical'],
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'carousel'),
+      ),
+    ),
   );
 
   return $element;
@@ -240,6 +294,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   $summary[] = t('Transition effect: @effect', array('@effect' => $settings['slideshow_fx']));
   $summary[] = t('Speed: @speed', array('@speed' => $settings['slideshow_speed']));
   $summary[] = t('Timeout: @timeout', array('@timeout' => $settings['slideshow_timeout']));
+  if (isset($settings['slideshow_controls']) && $settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
+  if (isset($settings['slideshow_pause']) && $settings['slideshow_pause']) $summary[] = t('Pause on hover');
 
   switch ($settings['slideshow_pager']) {
     case 'number':
@@ -254,10 +310,20 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
       $pager_image_message .= ')';
       $summary[] = $pager_image_message;
     break;
+    case 'carousel':
+      $pager_image_message = t('Pager') . ': ' . t('Carousel') . ' (';
+      if (isset($image_styles[$settings['slideshow_pager_image_style']])) {
+        $pager_image_message .= t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_pager_image_style']]));
+      }
+      else $pager_image_message .= t('Original image');
+      $pager_image_message .= ', ' . t('Number of visible images: @visible', array('@visible' => $settings['slideshow_carousel_visible']));
+      $pager_image_message .= ', ' . t('Number of images to scroll by: @scroll', array('@scroll' => $settings['slideshow_carousel_scroll']));
+      $pager_image_message .= ', ' . t('Transition speed: @speed', array('@speed' => $settings['slideshow_carousel_speed']));
+      if ($settings['slideshow_carousel_vertical']) $pager_image_message .= ', ' . t('Vertical');
+      $pager_image_message .= ')';
+      $summary[] = $pager_image_message;
+    break;
   }
-
-  if (isset($settings['slideshow_controls']) && $settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
-  if (isset($settings['slideshow_pause']) && $settings['slideshow_pause']) $summary[] = t('Pause on hover');
 
   return implode('<br />', $summary);
 }
@@ -316,10 +382,14 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     '#fx'                 => $display['settings']['slideshow_fx'],
     '#speed'              => $display['settings']['slideshow_speed'],
     '#timeout'            => $display['settings']['slideshow_timeout'],
-    '#pager'              => $display['settings']['slideshow_pager'],
-    '#pager_image_style'  => $display['settings']['slideshow_pager_image_style'],
     '#controls'           => $display['settings']['slideshow_controls'],
     '#pause'              => $display['settings']['slideshow_pause'],
+    '#pager'              => $display['settings']['slideshow_pager'],
+    '#pager_image_style'  => $display['settings']['slideshow_pager_image_style'],
+    '#carousel_visible'   => $display['settings']['slideshow_carousel_visible'],
+    '#carousel_scroll'    => $display['settings']['slideshow_carousel_scroll'],
+    '#carousel_speed'     => $display['settings']['slideshow_carousel_speed'],
+    '#carousel_vertical'  => $display['settings']['slideshow_carousel_vertical'],
   );
 
   return $element;
@@ -338,10 +408,14 @@ function field_slideshow_theme() {
         'speed'             => NULL,
         'fx'                => NULL,
         'timeout'           => NULL,
-        'pager'             => NULL,
-        'pager_image_style' => NULL,
         'controls'          => NULL,
         'pause'             => NULL,
+        'pager'             => NULL,
+        'pager_image_style' => NULL,
+        'carousel_visible'  => NULL,
+        'carousel_scroll'   => NULL,
+        'carousel_speed'    => NULL,
+        'carousel_vertical' => NULL,
       ),
     ),
   );
@@ -451,10 +525,14 @@ function theme_field_slideshow($variables) {
     $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-controls" class="field-slideshow-controls"><a href="#" class="prev">' . t('Prev') . '</a> <a href="#" class="next">' . t('Next') . '</a></div>';
   }
 
-  // Add thumbnails if needed
+  // Add thumbnails pager/carousel if needed
   if ($variables['pager'] != '') {
-    $output .= '<' . ($variables['pager'] == 'image' ? 'ul' : 'div') . ' id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager">';
-    if ($variables['pager'] == 'image') {
+    if ($variables['pager'] == 'image' || $variables['pager'] == 'carousel') {
+      if ($variables['pager'] == 'carousel') {
+        // Adds carousel wrapper and controls
+        $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-carousel" class="field-slideshow-carousel"><a href="#" class="carousel-prev">«</a>';
+      }
+      $output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager">';
       foreach ($variables['items'] as $num => $item) {
         $image = array(
           'path' => $item['uri'],
@@ -470,16 +548,38 @@ function theme_field_slideshow($variables) {
         else {
           $image_output = theme('image', $image);
         }
-        $output .= '<li><a href="#">' . theme('image_style', $image) . '</a></li>';
+
+        // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
+        if ($variables['pager_image_style']) {
+          $image_path = image_style_path($variables['pager_image_style'], $image['path']);
+          // if thumbnail is not generated, do it, so we can get the dimensions
+          if (!file_exists($image_path)) {
+            image_style_create_derivative(image_style_load($variables['pager_image_style']), $image['path'], $image_path);
+          }
+        }
+        else $image_path = $image['path'];
+        $image_dims = getimagesize($image_path);
+        $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
+
+        $output .= '<li><a href="#">' . $image_output . '</a></li>';
+      }
+      $output .= '</ul>';
+      if ($variables['pager'] == 'carousel') {
+        // close carousel wrapper and controls
+        $output .= '<a href="#" class="carousel-next">»</a></div>';
       }
     }
-    $output .= '</' . ($variables['pager'] == 'image' ? 'ul' : 'div') . '>';
+    else {
+      // wrapper for number pager
+      $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager"></div>';
+    }
   }
 
   $output .= '</div>'; // .field-slideshow-wrapper div closed
 
   // Add the Cycle plugin and the Js code
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
+  if ($variables['pager'] == 'carousel') drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jcarousellite_1.0.1.min.js');
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/field_slideshow.js');
 
   // Add js variables

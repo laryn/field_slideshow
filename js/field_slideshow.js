@@ -39,9 +39,23 @@
 
           if (settings.pager != '') {
             options.pager = "#" + i + "-pager";
-            if (settings.pager == 'image') options.pagerAnchorBuilder = function(idx, slide) {
-              return '#' + i + '-pager li:eq(' + idx + ') a';
-            };
+            if (settings.pager == 'image' || settings.pager == 'carousel') {
+              options.pagerAnchorBuilder = function(idx, slide) {
+                return '#' + i + '-pager li:eq(' + idx + ') a';
+              };
+              if (settings.pager == 'carousel') {
+                var carouselops = { 
+                  btnNext:  "#" + i + "-carousel .carousel-next",
+                  btnPrev:  "#" + i + "-carousel .carousel-prev",
+                  visible:  parseInt(settings.carousel_visible),
+                  scroll:   parseInt(settings.carousel_scroll),
+                  speed:    parseInt(settings.carousel_speed),
+                  vertical: settings.carousel_vertical,
+                  circular: false
+                };
+                $("#" + i + "-carousel").jCarouselLite(carouselops)
+              }
+            }
           }
 
           // Cycle!

@@ -23,8 +23,8 @@ function field_slideshow_field_formatter_info() {
         'slideshow_timeout'           => '4000',
         'slideshow_pager'             => '',
         'slideshow_pager_image_style' => '',
-        'slideshow_controls'          => '',
-        'slideshow_pause'             => '',
+        'slideshow_controls'          => 0,
+        'slideshow_pause'             => 0,
       ),
     ),
   );
@@ -439,6 +439,12 @@ function theme_field_slideshow($variables) {
 
   $output .= $slides_output; // adds the slides
   $output .= '</div>'; // .field-slideshow & .field-slideshow-wrapper div closed
+
+  if (count($variables['items']) <= 1) {
+    // don't add controls if there's only one image
+    $variables['controls'] = 0;
+    $variables['pager'] = '';
+  }
 
   // Add controls if needed
   if ($variables['controls']) {

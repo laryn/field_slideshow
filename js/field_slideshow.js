@@ -31,11 +31,11 @@
           }
 
           if (settings.speed == "0" && settings.timeout == "0") options.fastOnEvent = true;
-          if (settings.controls != "0") {
+          if (settings.controls) {
             options.prev = "#" + i + "-controls .prev";
             options.next = "#" + i + "-controls .next";
           }
-          if (settings.pause != "0") options.pause = true;
+          if (settings.pause) options.pause = true;
 
           if (settings.pager != '') {
             options.pager = "#" + i + "-pager";

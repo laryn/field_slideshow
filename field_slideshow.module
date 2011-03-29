@@ -14,21 +14,22 @@ function field_slideshow_field_formatter_info() {
       'label'       => t('Slideshow'),
       'field types' => array('image', 'media'),
       'settings'    => array(
-        'slideshow_image_style'       => '',
-        'slideshow_link'              => '',
-        'slideshow_caption'           => '',
-        'slideshow_caption_link'      => '',
-        'slideshow_fx'                => 'fade',
-        'slideshow_speed'             => '1000',
-        'slideshow_timeout'           => '4000',
-        'slideshow_controls'          => 0,
-        'slideshow_pause'             => 0,
-        'slideshow_pager'             => '',
-        'slideshow_pager_image_style' => '',
-        'slideshow_carousel_visible'  => '3',
-        'slideshow_carousel_scroll'   => '1',
-        'slideshow_carousel_speed'    => '500',
-        'slideshow_carousel_vertical' => 0,
+        'slideshow_image_style'           => '',
+        'slideshow_link'                  => '',
+        'slideshow_caption'               => '',
+        'slideshow_caption_link'          => '',
+        'slideshow_fx'                    => 'fade',
+        'slideshow_speed'                 => '1000',
+        'slideshow_timeout'               => '4000',
+        'slideshow_controls'              => 0,
+        'slideshow_pause'                 => 0,
+        'slideshow_pager'                 => '',
+        'slideshow_pager_image_style'     => '',
+        'slideshow_carousel_image_style'  => '',
+        'slideshow_carousel_visible'      => '3',
+        'slideshow_carousel_scroll'       => '1',
+        'slideshow_carousel_speed'        => '500',
+        'slideshow_carousel_vertical'     => 0,
       ),
     ),
   );
@@ -184,7 +185,20 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#options'        => image_style_options(FALSE),
     '#states' => array(
       'visible' => array(
-        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'image', 'value' => 'carousel'),
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'image'),
+      ),
+    ),
+  );
+  
+  $element['slideshow_carousel_image_style'] = array(
+    '#title'          => t('Carousel: Image style'),
+    '#type'           => 'select',
+    '#default_value'  => $settings['slideshow_carousel_image_style'],
+    '#empty_option'   => t('None (original image)'),
+    '#options'        => image_style_options(FALSE),
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'carousel'),
       ),
     ),
   );
@@ -312,8 +326,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
     break;
     case 'carousel':
       $pager_image_message = t('Pager') . ': ' . t('Carousel') . ' (';
-      if (isset($image_styles[$settings['slideshow_pager_image_style']])) {
-        $pager_image_message .= t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_pager_image_style']]));
+      if (isset($image_styles[$settings['slideshow_carousel_image_style']])) {
+        $pager_image_message .= t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_carousel_image_style']]));
       }
       else $pager_image_message .= t('Original image');
       $pager_image_message .= ', ' . t('Number of visible images: @visible', array('@visible' => $settings['slideshow_carousel_visible']));
@@ -375,21 +389,22 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   }
 
   $element[] = array(
-    '#theme'              => 'field_slideshow',
-    '#items'              => $items,
-    '#image_style'        => $display['settings']['slideshow_image_style'],
-    '#caption'            => $display['settings']['slideshow_caption'],
-    '#fx'                 => $display['settings']['slideshow_fx'],
-    '#speed'              => $display['settings']['slideshow_speed'],
-    '#timeout'            => $display['settings']['slideshow_timeout'],
-    '#controls'           => $display['settings']['slideshow_controls'],
-    '#pause'              => $display['settings']['slideshow_pause'],
-    '#pager'              => $display['settings']['slideshow_pager'],
-    '#pager_image_style'  => $display['settings']['slideshow_pager_image_style'],
-    '#carousel_visible'   => $display['settings']['slideshow_carousel_visible'],
-    '#carousel_scroll'    => $display['settings']['slideshow_carousel_scroll'],
-    '#carousel_speed'     => $display['settings']['slideshow_carousel_speed'],
-    '#carousel_vertical'  => $display['settings']['slideshow_carousel_vertical'],
+    '#theme'                => 'field_slideshow',
+    '#items'                => $items,
+    '#image_style'          => $display['settings']['slideshow_image_style'],
+    '#caption'              => $display['settings']['slideshow_caption'],
+    '#fx'                   => $display['settings']['slideshow_fx'],
+    '#speed'                => $display['settings']['slideshow_speed'],
+    '#timeout'              => $display['settings']['slideshow_timeout'],
+    '#controls'             => $display['settings']['slideshow_controls'],
+    '#pause'                => $display['settings']['slideshow_pause'],
+    '#pager'                => $display['settings']['slideshow_pager'],
+    '#pager_image_style'    => $display['settings']['slideshow_pager_image_style'],
+    '#carousel_image_style' => $display['settings']['slideshow_carousel_image_style'],
+    '#carousel_visible'     => $display['settings']['slideshow_carousel_visible'],
+    '#carousel_scroll'      => $display['settings']['slideshow_carousel_scroll'],
+    '#carousel_speed'       => $display['settings']['slideshow_carousel_speed'],
+    '#carousel_vertical'    => $display['settings']['slideshow_carousel_vertical'],
   );
 
   return $element;
@@ -402,20 +417,21 @@ function field_slideshow_theme() {
   return array(
     'field_slideshow' => array(
       'variables'     => array(
-        'items'             => NULL,
-        'image_style'       => NULL,
-        'caption'           => NULL,
-        'speed'             => NULL,
-        'fx'                => NULL,
-        'timeout'           => NULL,
-        'controls'          => NULL,
-        'pause'             => NULL,
-        'pager'             => NULL,
-        'pager_image_style' => NULL,
-        'carousel_visible'  => NULL,
-        'carousel_scroll'   => NULL,
-        'carousel_speed'    => NULL,
-        'carousel_vertical' => NULL,
+        'items'                 => NULL,
+        'image_style'           => NULL,
+        'caption'               => NULL,
+        'speed'                 => NULL,
+        'fx'                    => NULL,
+        'timeout'               => NULL,
+        'controls'              => NULL,
+        'pause'                 => NULL,
+        'pager'                 => NULL,
+        'pager_image_style'     => NULL,
+        'carousel_image_style'  => NULL,
+        'carousel_visible'      => NULL,
+        'carousel_scroll'       => NULL,
+        'carousel_speed'        => NULL,
+        'carousel_vertical'     => NULL,
       ),
     ),
   );
@@ -477,7 +493,7 @@ function theme_field_slideshow($variables) {
 
     // Generate the caption
     if ($variables['caption']) {
-      $caption_output = '<div class="field-slideshow-caption">' . $item[$variables['caption']] . '</div>';
+      $caption_output = '<div class="field-slideshow-caption"><span class="field-slideshow-caption-text">' . $item[$variables['caption']] . '</span></div>';
     }
     else $caption_output = '';
 
@@ -528,10 +544,14 @@ function theme_field_slideshow($variables) {
   // Add thumbnails pager/carousel if needed
   if ($variables['pager'] != '') {
     if ($variables['pager'] == 'image' || $variables['pager'] == 'carousel') {
+
       if ($variables['pager'] == 'carousel') {
+        $image_style = $variables['carousel_image_style'];
         // Adds carousel wrapper and controls
-        $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-carousel" class="field-slideshow-carousel"><a href="#" class="carousel-prev">«</a>';
+        $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-carousel-wrapper" class="field-slideshow-carousel-wrapper"><a href="#" class="carousel-prev">«</a><div id="field-slideshow-' . $field_slideshow_id . '-carousel" class="field-slideshow-carousel">';
       }
+      else $image_style = $variables['pager_image_style'];
+
       $output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager">';
       foreach ($variables['items'] as $num => $item) {
         $image = array(
@@ -541,33 +561,33 @@ function theme_field_slideshow($variables) {
         if (drupal_strlen($item['title']) > 0) {
           $image['title'] = $item['title'];
         }
-        if ($variables['pager_image_style']) {
-          $image['style_name'] = $variables['pager_image_style'];
+        if ($image_style) {
+          $image['style_name'] = $image_style;
           $image_output = theme('image_style', $image);
+          // Get image sizes and add them the img tag
+          $image_path = image_style_path($image_style, $image['path']);
+          // if thumbnail is not generated, do it, so we can get the dimensions
+          if (!file_exists($image_path)) {
+            image_style_create_derivative(image_style_load($image_style), $image['path'], $image_path);
+          }
         }
         else {
           $image_output = theme('image', $image);
+          $image_path = $image['path'];
         }
-
-        // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
-        if ($variables['pager_image_style']) {
-          $image_path = image_style_path($variables['pager_image_style'], $image['path']);
-          // if thumbnail is not generated, do it, so we can get the dimensions
-          if (!file_exists($image_path)) {
-            image_style_create_derivative(image_style_load($variables['pager_image_style']), $image['path'], $image_path);
-          }
-        }
-        else $image_path = $image['path'];
         $image_dims = getimagesize($image_path);
+        // adds width and height tags
         $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
 
         $output .= '<li><a href="#">' . $image_output . '</a></li>';
       }
       $output .= '</ul>';
+
       if ($variables['pager'] == 'carousel') {
         // close carousel wrapper and controls
-        $output .= '<a href="#" class="carousel-next">»</a></div>';
+        $output .= '</div><a href="#" class="carousel-next">»</a></div>';
       }
+
     }
     else {
       // wrapper for number pager

@@ -45,8 +45,8 @@
               };
               if (settings.pager == 'carousel') {
                 var carouselops = { 
-                  btnNext:  "#" + i + "-carousel .carousel-next",
-                  btnPrev:  "#" + i + "-carousel .carousel-prev",
+                  btnNext:  "#" + i + "-carousel-wrapper .carousel-next",
+                  btnPrev:  "#" + i + "-carousel-wrapper .carousel-prev",
                   visible:  parseInt(settings.carousel_visible),
                   scroll:   parseInt(settings.carousel_scroll),
                   speed:    parseInt(settings.carousel_speed),

@@ -21,6 +21,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_fx'                    => 'fade',
         'slideshow_speed'                 => '1000',
         'slideshow_timeout'               => '4000',
+        'slideshow_order'                 => '',
         'slideshow_controls'              => 0,
         'slideshow_pause'                 => 0,
         'slideshow_pager'                 => '',
@@ -155,6 +156,17 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#size'           => 5,
     '#default_value'  => $settings['slideshow_timeout'],
     '#description'    => t('Time between transitions (ms). Enter 0 to disable automatic transitions (then, enable pager and/or controls).'),
+  );
+
+  $element['slideshow_order'] = array(
+    '#title'          => t('Order'),
+    '#type'           => 'select',
+    '#default_value'  => $settings['slideshow_order'],
+    '#empty_option'   => t('Normal'),
+    '#options'        => array(
+      'reverse' => t('Reverse'),
+      'random'  => t('Random'),
+    ),
   );
 
   $element['slideshow_controls'] = array(
@@ -308,6 +320,13 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   $summary[] = t('Transition effect: @effect', array('@effect' => $settings['slideshow_fx']));
   $summary[] = t('Speed: @speed', array('@speed' => $settings['slideshow_speed']));
   $summary[] = t('Timeout: @timeout', array('@timeout' => $settings['slideshow_timeout']));
+  $orders = array(
+    'reverse' => t('Reverse order'),
+    'random'  => t('Random order'),
+  );
+  if (isset($orders[$settings['slideshow_order']])) {
+    $summary[] = $orders[$settings['slideshow_order']];
+  }
   if (isset($settings['slideshow_controls']) && $settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
   if (isset($settings['slideshow_pause']) && $settings['slideshow_pause']) $summary[] = t('Pause on hover');
 
@@ -396,6 +415,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     '#fx'                   => $display['settings']['slideshow_fx'],
     '#speed'                => $display['settings']['slideshow_speed'],
     '#timeout'              => $display['settings']['slideshow_timeout'],
+    '#order'                => $display['settings']['slideshow_order'],
     '#controls'             => $display['settings']['slideshow_controls'],
     '#pause'                => $display['settings']['slideshow_pause'],
     '#pager'                => $display['settings']['slideshow_pager'],
@@ -423,6 +443,7 @@ function field_slideshow_theme() {
         'speed'                 => NULL,
         'fx'                    => NULL,
         'timeout'               => NULL,
+        'order'                 => NULL,
         'controls'              => NULL,
         'pause'                 => NULL,
         'pager'                 => NULL,
@@ -448,6 +469,10 @@ function field_slideshow_theme() {
  * @ingroup themeable
  */
 function theme_field_slideshow($variables) {
+  // Change order if needed
+  if ($variables['order'] == 'reverse') $variables['items'] = array_reverse($variables['items']);
+  elseif ($variables['order'] == 'random') shuffle($variables['items']);
+
   // Generate slides
   $field_slideshow_zebra = 'odd';
   $slides_max_width = 0;

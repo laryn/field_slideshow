@@ -80,15 +80,17 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     );
   }
 
+  if ($field['type'] == 'media') $captions = _field_slideshow_get_media_text_fields();
+  else $captions = array(
+    'title'   => t('Title text'),
+    'alt'     => t('Alt text'),
+  );
   $element['slideshow_caption'] = array(
     '#title'          => t('Caption'),
     '#type'           => 'select',
     '#default_value'  => $settings['slideshow_caption'],
     '#empty_option'   => t('Nothing'),
-    '#options'        => array(
-      'title'   => t('Title text'),
-      'alt'     => t('Alt text'),
-    ),
+    '#options'        => $captions,
   );
 
   $element['slideshow_caption_link'] = array(
@@ -306,13 +308,14 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
     $summary[] = $link_type_message;
   }
 
-  $caption_types = array(
+  if ($field['type'] == 'media') $caption_types = _field_slideshow_get_media_text_fields();
+  else $caption_types = array(
     'title' => t('Title text'),
     'alt'   => t('Alt text'),
   );
   // Display this setting only if there's a caption.
   if (isset($caption_types[$settings['slideshow_caption']])) {
-    $caption_message = t('Caption : @caption', array('@caption' => $caption_types[$settings['slideshow_caption']]));
+    $caption_message = t('Caption: @caption', array('@caption' => $caption_types[$settings['slideshow_caption']]));
     if (isset($link_types[$settings['slideshow_caption_link']])) $caption_message .= ' (' . $link_types[$settings['slideshow_caption_link']] . ')';
     $summary[] = $caption_message;
   }
@@ -366,6 +369,19 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
  */
 function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
+
+  // Get correct caption
+  if ($display['settings']['slideshow_caption'] != '') {
+    foreach ($items as $delta => $item) {
+      $items[$delta] = (array) $item; // Media field support
+      if ($field['type'] == 'media') {
+        $items[$delta]['caption'] = $item->$display['settings']['slideshow_caption'];
+        $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
+      }
+      else $items[$delta]['caption'] = $item[$display['settings']['slideshow_caption']];
+    }
+  }
+
   $links = array(
     'slideshow_link'          => 'path',
     'slideshow_caption_link'  => 'caption_path',
@@ -383,7 +399,6 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
 
     foreach ($items as $delta => $item) {
       $items[$delta] = (array) $item; // Media field support
-
       if (isset($link_file)) {
         $uri = array(
           'path'    => file_create_url($item['uri']),
@@ -398,20 +413,18 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             'class' => array('colorbox'),
             'rel'   => 'field-slideshow',
           );
-          if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item[$display['settings']['slideshow_caption']];
+          if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
         }
       }
       $items[$delta][$path] = isset($uri) ? $uri : '';
     }
     unset($uri, $link_file); // unset for next loop;
-
   }
 
   $element[] = array(
     '#theme'                => 'field_slideshow',
     '#items'                => $items,
     '#image_style'          => $display['settings']['slideshow_image_style'],
-    '#caption'              => $display['settings']['slideshow_caption'],
     '#fx'                   => $display['settings']['slideshow_fx'],
     '#speed'                => $display['settings']['slideshow_speed'],
     '#timeout'              => $display['settings']['slideshow_timeout'],
@@ -439,7 +452,6 @@ function field_slideshow_theme() {
       'variables'     => array(
         'items'                 => NULL,
         'image_style'           => NULL,
-        'caption'               => NULL,
         'speed'                 => NULL,
         'fx'                    => NULL,
         'timeout'               => NULL,
@@ -487,13 +499,9 @@ function theme_field_slideshow($variables) {
     $slides_output .= '<div class="' . implode(' ', $classes) . '"' . ($num != 0 ? ' style="display:none;"' : '') . '>';
 
     // Generate the image html
-    $image = array(
-      'path' => $item['uri'],
-      'alt' => $item['alt'],
-    );
-    if (drupal_strlen($item['title']) > 0) {
-      $image['title'] = $item['title'];
-    }
+    $image['path'] = $item['uri'];
+    $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
+    if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
     if ($variables['image_style']) {
       $image['style_name'] = $variables['image_style'];
       $image_output = theme('image_style', $image);
@@ -517,14 +525,14 @@ function theme_field_slideshow($variables) {
     if ($image_dims[1] > $slides_max_height) $slides_max_height = $image_dims[1];
 
     // Generate the caption
-    if ($variables['caption']) {
-      $caption_output = '<div class="field-slideshow-caption"><span class="field-slideshow-caption-text">' . $item[$variables['caption']] . '</span></div>';
+    if ($item['caption'] != '') {
+      $caption_output = '<div class="field-slideshow-caption"><span class="field-slideshow-caption-text">' . $item['caption'] . '</span></div>';
     }
     else $caption_output = '';
 
     // Add links if needed
     $links = array('path' => 'image_output');
-    if ($variables['caption']) $links['caption_path'] = 'caption_output';
+    if ($item['caption'] != '') $links['caption_path'] = 'caption_output';
     // Loop thru required links (because image and caption can have different links)
     foreach ($links as $link => $out) {
       if ($item[$link]) {
@@ -546,7 +554,6 @@ function theme_field_slideshow($variables) {
   static $field_slideshow_id = -1;
   $field_slideshow_id++;
   $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
-  if ($variables['caption'] != '') $classes[] = 'caption-' . $variables['caption'];
   if ($variables['pager'] != '') $classes[] = 'with-pager';
   if ($variables['controls']) $classes[] = 'with-controls';
   $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
@@ -579,13 +586,9 @@ function theme_field_slideshow($variables) {
 
       $output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager slides-' . count($variables['items']) . '">';
       foreach ($variables['items'] as $num => $item) {
-        $image = array(
-          'path' => $item['uri'],
-          'alt' => $item['alt'],
-        );
-        if (drupal_strlen($item['title']) > 0) {
-          $image['title'] = $item['title'];
-        }
+        $image['path'] = $item['uri'];
+        $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
+        if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
         if ($image_style) {
           $image['style_name'] = $image_style;
           $image_output = theme('image_style', $image);
@@ -635,4 +638,19 @@ function theme_field_slideshow($variables) {
   drupal_add_css(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.css');
 
   return $output;
+}
+
+/*
+ * Helper functions.
+ */
+function _field_slideshow_get_media_text_fields() {
+  $captions = array();
+  $fields = field_info_fields();
+  foreach($fields as $name => $field) {
+    if (in_array('media', array_keys($field['bundles'])) && in_array('image', $field['bundles']['media']) && $field['type'] == 'text') {
+      $infos = field_info_instance('media', $name, 'image');
+      $captions[$name] = 'Media:' . $infos['label'];
+    }
+  }
+  return $captions;
 }

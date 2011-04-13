@@ -577,7 +577,7 @@ function theme_field_slideshow($variables) {
       }
       else $image_style = $variables['pager_image_style'];
 
-      $output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager">';
+      $output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager slides-' . count($variables['items']) . '">';
       foreach ($variables['items'] as $num => $item) {
         $image = array(
           'path' => $item['uri'],
@@ -616,7 +616,7 @@ function theme_field_slideshow($variables) {
     }
     else {
       // wrapper for number pager
-      $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager"></div>';
+      $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager slides-' . count($variables['items']) . '"></div>';
     }
   }
 

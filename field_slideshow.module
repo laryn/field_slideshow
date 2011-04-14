@@ -54,15 +54,17 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#options'        => image_style_options(FALSE),
   );
 
+  $links = array(
+    'content' => t('Content'),
+    'file'    => t('File'),
+  );
+  if ($field['type'] == 'media') $links += _field_slideshow_get_media_links_fields();
   $element['slideshow_link'] = array(
     '#title'          => t('Link image to'),
     '#type'           => 'select',
     '#default_value'  => $settings['slideshow_link'],
     '#empty_option'   => t('Nothing'),
-    '#options'        => array(
-      'content' => t('Content'),
-      'file'    => t('File'),
-    ),
+    '#options'        => $links,
   );
   if (module_exists('colorbox')) {
     $element['slideshow_link']['#options']['colorbox'] = 'Colorbox';
@@ -98,10 +100,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#type'           => 'select',
     '#default_value'  => $settings['slideshow_caption_link'],
     '#empty_option'   => t('Nothing'),
-    '#options'        => array(
-      'content' => t('Content'),
-      'file'    => t('File'),
-    ),
+    '#options'        => $links,
     '#states' => array(
       'invisible' => array(
         ':input[name$="[settings_edit_form][settings][slideshow_caption]"]' => array('value' => ''),
@@ -203,7 +202,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       ),
     ),
   );
-  
+
   $element['slideshow_carousel_image_style'] = array(
     '#title'          => t('Carousel: Image style'),
     '#type'           => 'select',
@@ -216,7 +215,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       ),
     ),
   );
-  
+
   $element['slideshow_carousel_visible'] = array(
     '#title'          => t('Carousel: Number of visible images'),
     '#type'           => 'textfield',
@@ -229,7 +228,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       ),
     ),
   );
-  
+
   $element['slideshow_carousel_scroll'] = array(
     '#title'          => t('Carousel: Number of images to scroll by'),
     '#type'           => 'textfield',
@@ -290,13 +289,14 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   else $summary[] = t('Original image');
 
   $link_types = array(
-    'content'   => t('Linked to content'),
-    'file'      => t('Linked to file'),
-    'colorbox'  => t('Linked to Colorbox'),
+    'content'   => t('content'),
+    'file'      => t('file'),
+    'colorbox'  => t('Colorbox'),
   );
+  if ($field['type'] == 'media') $link_types += _field_slideshow_get_media_links_fields();
   // Display this setting only if image is linked.
   if (isset($link_types[$settings['slideshow_link']])) {
-    $link_type_message = $link_types[$settings['slideshow_link']];
+    $link_type_message = t('Link to: @link', array('@link' => $link_types[$settings['slideshow_link']]));
     if ($settings['slideshow_link'] == 'colorbox') {
       $link_type_message .= ' (';
       if (isset($image_styles[$settings['slideshow_colorbox_image_style']])) {
@@ -316,7 +316,7 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   // Display this setting only if there's a caption.
   if (isset($caption_types[$settings['slideshow_caption']])) {
     $caption_message = t('Caption: @caption', array('@caption' => $caption_types[$settings['slideshow_caption']]));
-    if (isset($link_types[$settings['slideshow_caption_link']])) $caption_message .= ' (' . $link_types[$settings['slideshow_caption_link']] . ')';
+    if (isset($link_types[$settings['slideshow_caption_link']])) $caption_message .= ' (' . t('Link to: @link', array('@link' => $link_types[$settings['slideshow_caption_link']])) . ')';
     $summary[] = $caption_message;
   }
 
@@ -369,16 +369,13 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
  */
 function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
+  foreach ($items as $delta => $item) $items[$delta] = (array) $item; // Media field support
 
   // Get correct caption
   if ($display['settings']['slideshow_caption'] != '') {
     foreach ($items as $delta => $item) {
-      $items[$delta] = (array) $item; // Media field support
-      if ($field['type'] == 'media') {
-        $items[$delta]['caption'] = $item->$display['settings']['slideshow_caption'];
-        $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
-      }
-      else $items[$delta]['caption'] = $item[$display['settings']['slideshow_caption']];
+      $items[$delta]['caption'] = $item[$display['settings']['slideshow_caption']];
+      if ($field['type'] == 'media') $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
     }
   }
 
@@ -390,35 +387,59 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   foreach ($links as $setting => $path) {
 
     // Check if the formatter involves a link.
-    if ($display['settings'][$setting] == 'content') {
-      $uri = entity_uri($entity_type, $entity);
-    }
-    elseif ($display['settings'][$setting] == 'file' || $display['settings'][$setting] == 'colorbox') {
-      $link_file = TRUE;
+    $link_type = '';
+    switch ($display['settings'][$setting]) {
+      case 'content':
+        $uri = entity_uri($entity_type, $entity);
+      break;
+      case 'file':
+      case 'colorbox':
+        $link_type = 'file';
+      break;
+      default:
+        if ($field['type'] == 'media' && drupal_substr($display['settings'][$setting], 0, 6) == 'field_') {
+          $infos = field_info_field($display['settings'][$setting]);
+          $link_type = $infos['type'];
+        }
+      break;
     }
 
+    // Generate special links (other than node)
     foreach ($items as $delta => $item) {
-      $items[$delta] = (array) $item; // Media field support
-      if (isset($link_file)) {
-        $uri = array(
-          'path'    => file_create_url($item['uri']),
-          'options' => array(),
-        );
-        if ($display['settings'][$setting] == 'colorbox') {
-          // check if we need a thumbnaill and change the link
-          if ($display['settings']['slideshow_colorbox_image_style'] != '') {
-            $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
-          }
-          $uri['options']['attributes'] = array(
-            'class' => array('colorbox'),
-            'rel'   => 'field-slideshow',
+      switch ($link_type) {
+        case 'file':
+          $uri = array(
+            'path'    => file_create_url($item['uri']),
+            'options' => array(),
           );
-          if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
-        }
+          if ($display['settings'][$setting] == 'colorbox') {
+            // check if we need a thumbnaill and change the link
+            if ($display['settings']['slideshow_colorbox_image_style'] != '') {
+              $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
+            }
+            $uri['options']['attributes'] = array(
+              'class' => array('colorbox'),
+              'rel'   => 'field-slideshow',
+            );
+            if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
+          }
+        break;
+        case 'link_field':
+          $uri = array(
+            'path'    => $item[$display['settings'][$setting]][$langcode][0]['url'],
+            'options' => array(),
+          );
+        break;
+        case 'node_reference':
+          $uri = array(
+            'path'    => drupal_get_path_alias('node/' . $item[$display['settings'][$setting]][$langcode][0]['nid'], $langcode),
+            'options' => array(),
+          );
+        break;
       }
       $items[$delta][$path] = isset($uri) ? $uri : '';
     }
-    unset($uri, $link_file); // unset for next loop;
+    unset($uri, $link_type); // unset for next loop;
   }
 
   $element[] = array(
@@ -646,11 +667,23 @@ function theme_field_slideshow($variables) {
 function _field_slideshow_get_media_text_fields() {
   $captions = array();
   $fields = field_info_fields();
-  foreach($fields as $name => $field) {
+  foreach ($fields as $name => $field) {
     if (in_array('media', array_keys($field['bundles'])) && in_array('image', $field['bundles']['media']) && $field['type'] == 'text') {
       $infos = field_info_instance('media', $name, 'image');
       $captions[$name] = 'Media:' . $infos['label'];
     }
   }
   return $captions;
+}
+
+function _field_slideshow_get_media_links_fields() {
+  $links = array();
+  $fields = field_info_fields();
+  foreach ($fields as $name => $field) {
+    if (in_array('media', array_keys($field['bundles'])) && in_array('image', $field['bundles']['media']) && ($field['type'] == 'link_field' || $field['type'] == 'node_reference')) {
+      $infos = field_info_instance('media', $name, 'image');
+      $links[$name] = 'Media:' . $infos['label'];
+    }
+  }
+  return $links;
 }

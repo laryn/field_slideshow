@@ -546,14 +546,14 @@ function theme_field_slideshow($variables) {
     if ($image_dims[1] > $slides_max_height) $slides_max_height = $image_dims[1];
 
     // Generate the caption
-    if ($item['caption'] != '') {
+    if (isset($item['caption']) && $item['caption'] != '') {
       $caption_output = '<div class="field-slideshow-caption"><span class="field-slideshow-caption-text">' . $item['caption'] . '</span></div>';
     }
     else $caption_output = '';
 
     // Add links if needed
     $links = array('path' => 'image_output');
-    if ($item['caption'] != '') $links['caption_path'] = 'caption_output';
+    if (isset($item['caption']) && $item['caption'] != '') $links['caption_path'] = 'caption_output';
     // Loop thru required links (because image and caption can have different links)
     foreach ($links as $link => $out) {
       if ($item[$link]) {

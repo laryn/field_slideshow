@@ -369,13 +369,23 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
  */
 function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
-  foreach ($items as $delta => $item) $items[$delta] = (array) $item; // Media field support
+
+  // Media field support
+  if ($field['type'] == 'media') {
+    foreach ($items as $delta => $item) {
+      $items[$delta] = (array) $item;
+      $items[$delta]['uri'] = $item['file']->uri;
+    }
+  }
 
   // Get correct caption
   if ($display['settings']['slideshow_caption'] != '') {
     foreach ($items as $delta => $item) {
-      $items[$delta]['caption'] = $item[$display['settings']['slideshow_caption']];
-      if ($field['type'] == 'media') $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
+      if ($field['type'] == 'media') {
+        $items[$delta]['caption'] = $items[$delta]['file']->$display['settings']['slideshow_caption'];
+        $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
+      }
+      else $items[$delta]['caption'] = $item[$display['settings']['slideshow_caption']];
     }
   }
 
@@ -425,14 +435,16 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
           }
         break;
         case 'link_field':
+          $pathfield = $item['file']->$display['settings'][$setting];
           $uri = array(
-            'path'    => $item[$display['settings'][$setting]][$langcode][0]['url'],
+            'path'    => $pathfield[$langcode][0]['url'],
             'options' => array(),
           );
         break;
         case 'node_reference':
+          $pathfield = $item['file']->$display['settings'][$setting];
           $uri = array(
-            'path'    => drupal_get_path_alias('node/' . $item[$display['settings'][$setting]][$langcode][0]['nid'], $langcode),
+            'path'    => drupal_get_path_alias('node/' . $pathfield[$langcode][0]['nid'], $langcode),
             'options' => array(),
           );
         break;
@@ -668,8 +680,8 @@ function _field_slideshow_get_media_text_fields() {
   $captions = array();
   $fields = field_info_fields();
   foreach ($fields as $name => $field) {
-    if (in_array('media', array_keys($field['bundles'])) && in_array('image', $field['bundles']['media']) && $field['type'] == 'text') {
-      $infos = field_info_instance('media', $name, 'image');
+    if (in_array('file', array_keys($field['bundles'])) && in_array('image', $field['bundles']['file']) && $field['type'] == 'text') {
+      $infos = field_info_instance('file', $name, 'image');
       $captions[$name] = 'Media:' . $infos['label'];
     }
   }
@@ -680,8 +692,8 @@ function _field_slideshow_get_media_links_fields() {
   $links = array();
   $fields = field_info_fields();
   foreach ($fields as $name => $field) {
-    if (in_array('media', array_keys($field['bundles'])) && in_array('image', $field['bundles']['media']) && ($field['type'] == 'link_field' || $field['type'] == 'node_reference')) {
-      $infos = field_info_instance('media', $name, 'image');
+    if (in_array('file', array_keys($field['bundles'])) && in_array('image', $field['bundles']['file']) && ($field['type'] == 'link_field' || $field['type'] == 'node_reference')) {
+      $infos = field_info_instance('file', $name, 'image');
       $links[$name] = 'Media:' . $infos['label'];
     }
   }

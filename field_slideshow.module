@@ -429,7 +429,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             }
             $uri['options']['attributes'] = array(
               'class' => array('colorbox'),
-              'rel'   => 'field-slideshow',
+              'rel'   => 'field-slideshow[' . $entity->nid . ']',
             );
             if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
           }

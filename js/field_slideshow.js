@@ -12,7 +12,17 @@
           // Add padding if needed
           var max_outerWidth = 0;
           var max_outerHeight = 0;
-          $('.field-slideshow-slide', slideshow).each(function() {
+          $('.field-slideshow-slide img', slideshow).each(function() {
+            $this = $(this);
+            max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
+            max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
+          });
+		  $('.field-slideshow-slide a', slideshow).each(function() {
+            $this = $(this);
+            max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
+            max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
+          });
+		  $('.field-slideshow-slide', slideshow).each(function() {
             $this = $(this);
             max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
             max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));

@@ -368,6 +368,15 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
  * Implements hook_field_formatter_view().
  */
 function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+
+  // Needed when upgrading to 1.1
+  if (!isset($display['settings']['slideshow_order'])) $display['settings']['slideshow_order'] = '';
+  if (!isset($display['settings']['slideshow_carousel_image_style'])) $display['settings']['slideshow_carousel_image_style'] = '';
+  if (!isset($display['settings']['slideshow_carousel_visible'])) $display['settings']['slideshow_carousel_visible'] = '3';
+  if (!isset($display['settings']['slideshow_carousel_scroll'])) $display['settings']['slideshow_carousel_scroll'] = '1';
+  if (!isset($display['settings']['slideshow_carousel_speed'])) $display['settings']['slideshow_carousel_speed'] = '500';
+  if (!isset($display['settings']['slideshow_carousel_vertical'])) $display['settings']['slideshow_carousel_vertical'] = 0;
+
   $element = array();
 
   // Media field support

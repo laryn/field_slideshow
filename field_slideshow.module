@@ -524,8 +524,10 @@ function field_slideshow_theme() {
  */
 function theme_field_slideshow($variables) {
   // Change order if needed
-  if ($variables['order'] == 'reverse') $variables['items'] = array_reverse($variables['items']);
-  elseif ($variables['order'] == 'random') shuffle($variables['items']);
+  if (isset($variables['order'])) {
+    if ($variables['order'] == 'reverse') $variables['items'] = array_reverse($variables['items']);
+    elseif ($variables['order'] == 'random') shuffle($variables['items']);
+  }
 
   // Generate slides
   $field_slideshow_zebra = 'odd';
@@ -544,7 +546,7 @@ function theme_field_slideshow($variables) {
     $image['path'] = $item['uri'];
     $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
     if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
-    if ($variables['image_style']) {
+    if (isset($variables['image_style'])) {
       $image['style_name'] = $variables['image_style'];
       $image_output = theme('image_style', $image);
     }
@@ -553,7 +555,7 @@ function theme_field_slideshow($variables) {
     }
 
     // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
-    if ($variables['image_style']) {
+    if (isset($variables['image_style'])) {
       $image_path = image_style_path($variables['image_style'], $image['path']);
       // if thumbnail is not generated, do it, so we can get the dimensions
       if (!file_exists($image_path)) {
@@ -577,7 +579,7 @@ function theme_field_slideshow($variables) {
     if (isset($item['caption']) && $item['caption'] != '') $links['caption_path'] = 'caption_output';
     // Loop thru required links (because image and caption can have different links)
     foreach ($links as $link => $out) {
-      if ($item[$link]) {
+      if (isset($item[$link])) {
         $path = $item[$link]['path'];
         $options = $item[$link]['options'];
         // When displaying an image inside a link, the html option must be TRUE.
@@ -596,8 +598,8 @@ function theme_field_slideshow($variables) {
   static $field_slideshow_id = -1;
   $field_slideshow_id++;
   $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
-  if ($variables['pager'] != '') $classes[] = 'with-pager';
-  if ($variables['controls']) $classes[] = 'with-controls';
+  if (isset($variables['pager']) && $variables['pager'] != '') $classes[] = 'with-pager';
+  if (isset($variables['controls'])) $classes[] = 'with-controls';
   $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
     <div class="' . implode(' ', $classes) . '" style="width:' . $slides_max_width . 'px; height:' . $slides_max_height . 'px">';
 
@@ -611,12 +613,12 @@ function theme_field_slideshow($variables) {
   }
 
   // Add controls if needed
-  if ($variables['controls']) {
+  if (isset($variables['controls'])) {
     $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-controls" class="field-slideshow-controls"><a href="#" class="prev">' . t('Prev') . '</a> <a href="#" class="next">' . t('Next') . '</a></div>';
   }
 
   // Add thumbnails pager/carousel if needed
-  if ($variables['pager'] != '') {
+  if (isset($variables['pager']) && $variables['pager'] != '') {
     if ($variables['pager'] == 'image' || $variables['pager'] == 'carousel') {
 
       if ($variables['pager'] == 'carousel') {
@@ -669,7 +671,9 @@ function theme_field_slideshow($variables) {
 
   // Add the Cycle plugin and the Js code
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
-  if ($variables['pager'] == 'carousel') drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jcarousellite_1.0.1.min.js');
+  if (isset($variables['pager']) && $variables['pager'] == 'carousel') {
+    drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jcarousellite_1.0.1.min.js');
+  }
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/field_slideshow.js');
 
   // Add js variables

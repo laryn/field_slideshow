@@ -383,7 +383,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if ($field['type'] == 'media') {
     foreach ($items as $delta => $item) {
       $items[$delta] = (array) $item;
-      $items[$delta]['uri'] = $item['file']->uri;
+      $items[$delta]['uri'] = $item->uri;
     }
   }
 

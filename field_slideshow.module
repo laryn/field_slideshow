@@ -579,7 +579,7 @@ function theme_field_slideshow($variables) {
     if (isset($item['caption']) && $item['caption'] != '') $links['caption_path'] = 'caption_output';
     // Loop thru required links (because image and caption can have different links)
     foreach ($links as $link => $out) {
-      if (isset($item[$link])) {
+      if (!empty($item[$link])) {
         $path = $item[$link]['path'];
         $options = $item[$link]['options'];
         // When displaying an image inside a link, the html option must be TRUE.

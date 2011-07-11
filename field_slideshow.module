@@ -383,7 +383,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if ($field['type'] == 'media') {
     foreach ($items as $delta => $item) {
       $items[$delta] = (array) $item;
-      $items[$delta]['uri'] = $item->uri;
+      $items[$delta]['uri'] = $item['file']->uri;
     }
   }
 
@@ -392,7 +392,11 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     foreach ($items as $delta => $item) {
       if ($field['type'] == 'media') {
         $items[$delta]['caption'] = $items[$delta]['file']->$display['settings']['slideshow_caption'];
-        $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
+        if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption'][$langcode])) 
+          $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
+        if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption']['und'])) 
+          $items[$delta]['caption'] = $items[$delta]['caption']['und'][0]['value'];
+        else $items[$delta]['caption'] = '';
       }
       else $items[$delta]['caption'] = $item[$display['settings']['slideshow_caption']];
     }

@@ -613,7 +613,7 @@ function theme_field_slideshow($variables) {
   }
 
   // Add controls if needed
-  if (isset($variables['controls'])) {
+  if (!empty($variables['controls'])) {
     $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-controls" class="field-slideshow-controls"><a href="#" class="prev">' . t('Prev') . '</a> <a href="#" class="next">' . t('Next') . '</a></div>';
   }
 

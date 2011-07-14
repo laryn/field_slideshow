@@ -14,28 +14,29 @@ function field_slideshow_field_formatter_info() {
       'label'       => t('Slideshow'),
       'field types' => array('image', 'media'),
       'settings'    => array(
-        'slideshow_image_style'           => '',
-        'slideshow_link'                  => '',
-        'slideshow_caption'               => '',
-        'slideshow_caption_link'          => '',
-        'slideshow_fx'                    => 'fade',
-        'slideshow_speed'                 => '1000',
-        'slideshow_timeout'               => '4000',
-        'slideshow_order'                 => '',
-        'slideshow_controls'              => 0,
-        'slideshow_pause'                 => 0,
-        'slideshow_pager'                 => '',
-        'slideshow_pager_image_style'     => '',
-        'slideshow_carousel_image_style'  => '',
-        'slideshow_carousel_visible'      => '3',
-        'slideshow_carousel_scroll'       => '1',
-        'slideshow_carousel_speed'        => '500',
-        'slideshow_carousel_vertical'     => 0,
+        'slideshow_image_style'               => '',
+        'slideshow_link'                      => '',
+        'slideshow_colorbox_image_style'      => '',
+        'slideshow_colorbox_slideshow'        => 0,
+        'slideshow_colorbox_slideshow_speed'  => '4000',
+        'slideshow_caption'                   => '',
+        'slideshow_caption_link'              => '',
+        'slideshow_fx'                        => 'fade',
+        'slideshow_speed'                     => '1000',
+        'slideshow_timeout'                   => '4000',
+        'slideshow_order'                     => '',
+        'slideshow_controls'                  => 0,
+        'slideshow_pause'                     => 0,
+        'slideshow_pager'                     => '',
+        'slideshow_pager_image_style'         => '',
+        'slideshow_carousel_image_style'      => '',
+        'slideshow_carousel_visible'          => '3',
+        'slideshow_carousel_scroll'           => '1',
+        'slideshow_carousel_speed'            => '500',
+        'slideshow_carousel_vertical'         => 0,
       ),
     ),
   );
-  if (module_exists('colorbox')) $formatters['slideshow']['settings']['slideshow_colorbox_image_style'] = '';
-
   return $formatters;
 }
 
@@ -77,6 +78,27 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       '#states' => array(
         'visible' => array(
           ':input[name$="[settings_edit_form][settings][slideshow_link]"]' => array('value' => 'colorbox'),
+        ),
+      ),
+    );
+    $element['slideshow_colorbox_slideshow'] = array(
+      '#title'          => t('Colorbox slideshow'),
+      '#type'           => 'checkbox',
+      '#default_value'  => $settings['slideshow_colorbox_slideshow'],
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[settings_edit_form][settings][slideshow_link]"]' => array('value' => 'colorbox'),
+        ),
+      ),
+    );
+    $element['slideshow_colorbox_slideshow_speed'] = array(
+      '#title'          => t('Colorbox slideshow speed'),
+      '#type'           => 'textfield',
+      '#size'           => 5,
+      '#default_value'  => $settings['slideshow_colorbox_slideshow_speed'],
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[settings_edit_form][settings][slideshow_colorbox_slideshow]"]' => array('checked' => TRUE),
         ),
       ),
     );
@@ -270,6 +292,20 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
 }
 
 /**
+ * Implements hook_form_alter().
+ */
+function field_slideshow_form_alter(&$form, &$form_state, $form_id) {
+  // If Colorbox slideshow is needed, enable required variable
+  if ($form_id == 'field_ui_display_overview_form' && !empty($form_state['triggering_element'])) {
+    if (!empty($form_state['formatter_settings'])) {
+      $field = $form_state['triggering_element']['#field_name'];
+      if (isset($form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow']) && $form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow'] == 1)
+        variable_set('colorbox_load', 1);
+    }
+  }
+}
+
+/**
  * Implements hook_field_formatter_settings_summary().
  */
 function field_slideshow_field_formatter_settings_summary($field, $instance, $view_mode) {
@@ -303,6 +339,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
         $link_type_message .= t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_colorbox_image_style']]));
       }
       else $link_type_message .=  t('Original image');
+      if (isset($settings['slideshow_colorbox_slideshow']) && $settings['slideshow_colorbox_slideshow'])
+        $link_type_message .= ', with Slideshow (Speed: ' . $settings['slideshow_colorbox_slideshow_speed'] . ')';
       $link_type_message .= ')';
     }
     $summary[] = $link_type_message;
@@ -445,6 +483,10 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
               'rel'   => 'field-slideshow[' . $entity->nid . ']',
             );
             if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
+            if (isset($display['settings']['slideshow_colorbox_slideshow']) && $display['settings']['slideshow_colorbox_slideshow']) {
+              $uri['options']['attributes']['class'] = array('colorbox-load');
+              $uri['path'] .= '?slideshow=true&slideshowAuto=true&slideshowSpeed=' . $display['settings']['slideshow_colorbox_slideshow_speed'];
+            }
           }
         break;
         case 'link_field':

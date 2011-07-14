@@ -17,7 +17,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_image_style'               => '',
         'slideshow_link'                      => '',
         'slideshow_colorbox_image_style'      => '',
-        'slideshow_colorbox_slideshow'        => 0,
+        'slideshow_colorbox_slideshow'        => '',
         'slideshow_colorbox_slideshow_speed'  => '4000',
         'slideshow_caption'                   => '',
         'slideshow_caption_link'              => '',
@@ -81,10 +81,16 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
         ),
       ),
     );
+    $colorbox_slideshow = array(
+      'automatic' => t('Automatic'),
+      'manual'    => t('Manual'),
+    );
     $element['slideshow_colorbox_slideshow'] = array(
       '#title'          => t('Colorbox slideshow'),
-      '#type'           => 'checkbox',
+      '#type'           => 'select',
       '#default_value'  => $settings['slideshow_colorbox_slideshow'],
+      '#empty_option'   => t('No slideshow'),
+      '#options'        => $colorbox_slideshow,
       '#states' => array(
         'visible' => array(
           ':input[name$="[settings_edit_form][settings][slideshow_link]"]' => array('value' => 'colorbox'),
@@ -97,8 +103,8 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       '#size'           => 5,
       '#default_value'  => $settings['slideshow_colorbox_slideshow_speed'],
       '#states' => array(
-        'visible' => array(
-          ':input[name$="[settings_edit_form][settings][slideshow_colorbox_slideshow]"]' => array('checked' => TRUE),
+        'invisible' => array(
+          ':input[name$="[settings_edit_form][settings][slideshow_colorbox_slideshow]"]' => array('value' => ''),
         ),
       ),
     );
@@ -299,7 +305,7 @@ function field_slideshow_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'field_ui_display_overview_form' && !empty($form_state['triggering_element'])) {
     if (!empty($form_state['formatter_settings'])) {
       $field = $form_state['triggering_element']['#field_name'];
-      if (isset($form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow']) && $form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow'] == 1)
+      if (isset($form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow']) && $form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow'] != '')
         variable_set('colorbox_load', 1);
     }
   }
@@ -339,8 +345,13 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
         $link_type_message .= t('Image style: @style', array('@style' => $image_styles[$settings['slideshow_colorbox_image_style']]));
       }
       else $link_type_message .=  t('Original image');
-      if (isset($settings['slideshow_colorbox_slideshow']) && $settings['slideshow_colorbox_slideshow'])
-        $link_type_message .= ', with Slideshow (Speed: ' . $settings['slideshow_colorbox_slideshow_speed'] . ')';
+      if (isset($settings['slideshow_colorbox_slideshow']) && $settings['slideshow_colorbox_slideshow']) {
+        $colorbox_slideshow = array(
+          'automatic' => t('Automatic'),
+          'manual'    => t('Manual'),
+        );
+        $link_type_message .= ', with Slideshow (' . $colorbox_slideshow[$settings['slideshow_colorbox_slideshow']] . ' - Speed: ' . $settings['slideshow_colorbox_slideshow_speed'] . ')';
+      }
       $link_type_message .= ')';
     }
     $summary[] = $link_type_message;
@@ -483,9 +494,9 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
               'rel'   => 'field-slideshow[' . $entity->nid . ']',
             );
             if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
-            if (isset($display['settings']['slideshow_colorbox_slideshow']) && $display['settings']['slideshow_colorbox_slideshow']) {
+            if (isset($display['settings']['slideshow_colorbox_slideshow']) && $display['settings']['slideshow_colorbox_slideshow'] != '') {
               $uri['options']['attributes']['class'] = array('colorbox-load');
-              $uri['path'] .= '?slideshow=true&slideshowAuto=true&slideshowSpeed=' . $display['settings']['slideshow_colorbox_slideshow_speed'];
+              $uri['path'] .= '?slideshow=true&slideshowAuto=' . (($display['settings']['slideshow_colorbox_slideshow'] == 'automatic') ? 'true':'false') . '&slideshowSpeed=' . $display['settings']['slideshow_colorbox_slideshow_speed'];
             }
           }
         break;

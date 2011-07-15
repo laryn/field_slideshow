@@ -12,3 +12,10 @@
   float: left;
   margin-right: 5px;
 }
+
+.field-slideshow-carousel li {
+  opacity: 0.6;
+}
+  .field-slideshow-carousel li.activeSlide {
+    opacity: 1;
+  }

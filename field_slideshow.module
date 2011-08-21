@@ -19,6 +19,8 @@ function field_slideshow_field_formatter_info() {
         'slideshow_colorbox_image_style'      => '',
         'slideshow_colorbox_slideshow'        => '',
         'slideshow_colorbox_slideshow_speed'  => '4000',
+        'slideshow_colorbox_transition'       => 'elastic',
+        'slideshow_colorbox_speed'            => '350',
         'slideshow_caption'                   => '',
         'slideshow_caption_link'              => '',
         'slideshow_fx'                        => 'fade',
@@ -102,9 +104,38 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       '#type'           => 'textfield',
       '#size'           => 5,
       '#default_value'  => $settings['slideshow_colorbox_slideshow_speed'],
+      '#description'    => t('Time between transitions (ms).'),
       '#states' => array(
         'invisible' => array(
           ':input[name$="[settings_edit_form][settings][slideshow_colorbox_slideshow]"]' => array('value' => ''),
+        ),
+      ),
+    );
+    $colorbox_transitions = array(
+      'none'    => t('None'),
+      'elastic' => t('Elastic'),
+      'fade'    => t('Fade'),
+    );
+    $element['slideshow_colorbox_transition'] = array(
+      '#title'          => t('Colorbox transition'),
+      '#type'           => 'select',
+      '#default_value'  => $settings['slideshow_colorbox_transition'],
+      '#options'        => $colorbox_transitions,
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[settings_edit_form][settings][slideshow_link]"]' => array('value' => 'colorbox'),
+        ),
+      ),
+    );
+    $element['slideshow_colorbox_speed'] = array(
+      '#title'          => t('Colorbox transition speed'),
+      '#type'           => 'textfield',
+      '#size'           => 5,
+      '#default_value'  => $settings['slideshow_colorbox_speed'],
+      '#description'    => t('Duration of transition (ms).'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[settings_edit_form][settings][slideshow_link]"]' => array('value' => 'colorbox'),
         ),
       ),
     );
@@ -177,6 +208,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#type'           => 'textfield',
     '#size'           => 5,
     '#default_value'  => $settings['slideshow_speed'],
+    '#description'    => t('Duration of transition (ms).'),
   );
 
   $element['slideshow_timeout'] = array(
@@ -426,6 +458,10 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if (!isset($display['settings']['slideshow_carousel_speed'])) $display['settings']['slideshow_carousel_speed'] = '500';
   if (!isset($display['settings']['slideshow_carousel_vertical'])) $display['settings']['slideshow_carousel_vertical'] = 0;
 
+  // Needed when upgrading to 1.2
+  if (!isset($display['settings']['slideshow_colorbox_transition'])) $display['settings']['slideshow_colorbox_transition'] = 'elastic';
+  if (!isset($display['settings']['slideshow_colorbox_speed'])) $display['settings']['slideshow_colorbox_speed'] = '350';
+
   $element = array();
 
   // Media field support
@@ -441,9 +477,9 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     foreach ($items as $delta => $item) {
       if ($field['type'] == 'media') {
         $items[$delta]['caption'] = $items[$delta]['file']->$display['settings']['slideshow_caption'];
-        if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption'][$langcode])) 
+        if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption'][$langcode]))
           $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
-        if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption']['und'])) 
+        if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption']['und']))
           $items[$delta]['caption'] = $items[$delta]['caption']['und'][0]['value'];
         else $items[$delta]['caption'] = '';
       }
@@ -496,7 +532,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
             if (isset($display['settings']['slideshow_colorbox_slideshow']) && $display['settings']['slideshow_colorbox_slideshow'] != '') {
               $uri['options']['attributes']['class'] = array('colorbox-load');
-              $uri['path'] .= '?slideshow=true&slideshowAuto=' . (($display['settings']['slideshow_colorbox_slideshow'] == 'automatic') ? 'true':'false') . '&slideshowSpeed=' . $display['settings']['slideshow_colorbox_slideshow_speed'];
+              $uri['path'] .= '?slideshow=true&slideshowAuto=' . (($display['settings']['slideshow_colorbox_slideshow'] == 'automatic') ? 'true':'false') . '&slideshowSpeed=' . $display['settings']['slideshow_colorbox_slideshow_speed'] . '&speed=' . $display['settings']['slideshow_colorbox_speed'] . '&transition=' . $display['settings']['slideshow_colorbox_transition'];
             }
           }
         break;

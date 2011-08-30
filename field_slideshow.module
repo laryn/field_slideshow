@@ -28,8 +28,10 @@ function field_slideshow_field_formatter_info() {
         'slideshow_timeout'                   => '4000',
         'slideshow_order'                     => '',
         'slideshow_controls'                  => 0,
+        'slideshow_controls_position'         => 'after',
         'slideshow_pause'                     => 0,
         'slideshow_pager'                     => '',
+        'slideshow_pager_position'            => 'after',
         'slideshow_pager_image_style'         => '',
         'slideshow_carousel_image_style'      => '',
         'slideshow_carousel_visible'          => '3',
@@ -236,6 +238,18 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#default_value'  => $settings['slideshow_controls'],
   );
 
+  $element['slideshow_controls_position'] = array(
+    '#title'          => t('Prev/next controls position'),
+    '#type'           => 'select',
+    '#options'        => array('before' => 'Before', 'after' => 'After'),
+    '#default_value'  => $settings['slideshow_controls_position'],
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_controls]"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
   $element['slideshow_pause'] = array(
     '#title'          => t('Pause on hover'),
     '#type'           => 'checkbox',
@@ -248,6 +262,18 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#options'        => array('number' => 'Slide number', 'image' => 'Image', 'carousel' => 'Carousel'),
     '#empty_option'   => t('None'),
     '#default_value'  => $settings['slideshow_pager'],
+  );
+
+  $element['slideshow_pager_position'] = array(
+    '#title'          => t('Pager position'),
+    '#type'           => 'select',
+    '#options'        => array('before' => 'Before', 'after' => 'After'),
+    '#default_value'  => $settings['slideshow_pager_position'],
+    '#states' => array(
+      'invisible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => ''),
+      ),
+    ),
   );
 
   $element['slideshow_pager_image_style'] = array(
@@ -459,6 +485,8 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if (!isset($display['settings']['slideshow_carousel_vertical'])) $display['settings']['slideshow_carousel_vertical'] = 0;
 
   // Needed when upgrading to 1.2
+  if (!isset($display['settings']['slideshow_pager_position'])) $display['settings']['slideshow_pager_position'] = 'after';
+  if (!isset($display['settings']['slideshow_controls_position'])) $display['settings']['slideshow_controls_position'] = 'after';
   if (!isset($display['settings']['slideshow_colorbox_transition'])) $display['settings']['slideshow_colorbox_transition'] = 'elastic';
   if (!isset($display['settings']['slideshow_colorbox_speed'])) $display['settings']['slideshow_colorbox_speed'] = '350';
 
@@ -566,8 +594,10 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#timeout'              => $display['settings']['slideshow_timeout'],
       '#order'                => $display['settings']['slideshow_order'],
       '#controls'             => $display['settings']['slideshow_controls'],
+      '#controls_position'    => $display['settings']['slideshow_controls_position'],
       '#pause'                => $display['settings']['slideshow_pause'],
       '#pager'                => $display['settings']['slideshow_pager'],
+      '#pager_position'       => $display['settings']['slideshow_pager_position'],
       '#pager_image_style'    => $display['settings']['slideshow_pager_image_style'],
       '#carousel_image_style' => $display['settings']['slideshow_carousel_image_style'],
       '#carousel_visible'     => $display['settings']['slideshow_carousel_visible'],
@@ -594,8 +624,10 @@ function field_slideshow_theme() {
         'timeout'               => NULL,
         'order'                 => NULL,
         'controls'              => NULL,
+        'controls_position'     => NULL,
         'pause'                 => NULL,
         'pager'                 => NULL,
+        'pager_position'        => NULL,
         'pager_image_style'     => NULL,
         'carousel_image_style'  => NULL,
         'carousel_visible'      => NULL,
@@ -618,7 +650,9 @@ function field_slideshow_theme() {
  * @ingroup themeable
  */
 function theme_field_slideshow($variables) {
-  $output = '';
+
+  static $field_slideshow_id = -1;
+  $field_slideshow_id++;
 
   // Change order if needed
   if (isset($variables['order'])) {
@@ -691,18 +725,6 @@ function theme_field_slideshow($variables) {
     $slides_output .= '</div>'; // .fied-slideshow-slide div closed
   }
 
-  // Generate classes
-  static $field_slideshow_id = -1;
-  $field_slideshow_id++;
-  $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
-  if (isset($variables['pager']) && $variables['pager'] != '') $classes[] = 'with-pager';
-  if (isset($variables['controls'])) $classes[] = 'with-controls';
-  $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">
-    <div class="' . implode(' ', $classes) . '" style="width:' . $slides_max_width . 'px; height:' . $slides_max_height . 'px">';
-
-  $output .= $slides_output; // adds the slides
-  $output .= '</div>'; // .field-slideshow & .field-slideshow-wrapper div closed
-
   if (count($variables['items']) == 1) {
     // don't add controls if there's only one image
     $variables['controls'] = 0;
@@ -711,21 +733,22 @@ function theme_field_slideshow($variables) {
 
   // Add controls if needed
   if (!empty($variables['controls'])) {
-    $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-controls" class="field-slideshow-controls"><a href="#" class="prev">' . t('Prev') . '</a> <a href="#" class="next">' . t('Next') . '</a></div>';
+    $controls_output = '<div id="field-slideshow-' . $field_slideshow_id . '-controls" class="field-slideshow-controls"><a href="#" class="prev">' . t('Prev') . '</a> <a href="#" class="next">' . t('Next') . '</a></div>';
   }
 
   // Add thumbnails pager/carousel if needed
   if (isset($variables['pager']) && $variables['pager'] != '') {
+    $pager_output = '';
     if ($variables['pager'] == 'image' || $variables['pager'] == 'carousel') {
 
       if ($variables['pager'] == 'carousel') {
         $image_style = $variables['carousel_image_style'];
         // Adds carousel wrapper and controls
-        $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-carousel-wrapper" class="field-slideshow-carousel-wrapper"><a href="#" class="carousel-prev">«</a><div id="field-slideshow-' . $field_slideshow_id . '-carousel" class="field-slideshow-carousel">';
+        $pager_output .= '<div id="field-slideshow-' . $field_slideshow_id . '-carousel-wrapper" class="field-slideshow-carousel-wrapper"><a href="#" class="carousel-prev">«</a><div id="field-slideshow-' . $field_slideshow_id . '-carousel" class="field-slideshow-carousel">';
       }
       else $image_style = $variables['pager_image_style'];
 
-      $output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager slides-' . count($variables['items']) . '">';
+      $pager_output .= '<ul id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager slides-' . count($variables['items']) . '">';
       foreach ($variables['items'] as $num => $item) {
         $image['path'] = $item['uri'];
         $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
@@ -748,21 +771,37 @@ function theme_field_slideshow($variables) {
         // adds width and height tags
         $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
 
-        $output .= '<li><a href="#">' . $image_output . '</a></li>';
+        $pager_output .= '<li><a href="#">' . $image_output . '</a></li>';
       }
-      $output .= '</ul>';
+      $pager_output .= '</ul>';
 
       if ($variables['pager'] == 'carousel') {
         // close carousel wrapper and controls
-        $output .= '</div><a href="#" class="carousel-next">»</a></div>';
+        $pager_output .= '</div><a href="#" class="carousel-next">»</a></div>';
       }
 
     }
     else {
       // wrapper for number pager
-      $output .= '<div id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager slides-' . count($variables['items']) . '"></div>';
+      $pager_output = '<div id="field-slideshow-' . $field_slideshow_id . '-pager" class="field-slideshow-pager slides-' . count($variables['items']) . '"></div>';
     }
   }
+
+  // Generate global markup
+  $output = '<div id="field-slideshow-' . $field_slideshow_id . '-wrapper" class="field-slideshow-wrapper">';
+
+  if (isset($controls_output) && $variables['controls_position'] == 'before') $output .= $controls_output;
+  if (isset($pager_output) && $variables['pager_position'] == 'before') $output .= $pager_output;
+
+  $classes = array('field-slideshow', 'field-slideshow-' . $field_slideshow_id, 'effect-' . $variables['fx'], 'timeout-' . $variables['timeout']);
+  if (isset($variables['pager']) && $variables['pager'] != '') $classes[] = 'with-pager';
+  if (isset($variables['controls'])) $classes[] = 'with-controls';
+  $output .= '<div class="' . implode(' ', $classes) . '" style="width:' . $slides_max_width . 'px; height:' . $slides_max_height . 'px">';
+  $output .= $slides_output; // adds the slides
+  $output .= '</div>'; // .field-slideshow
+
+  if (isset($controls_output) && $variables['controls_position'] == 'after') $output .= $controls_output;
+  if (isset($pager_output) && $variables['pager_position'] == 'after') $output .= $pager_output;
 
   $output .= '</div>'; // .field-slideshow-wrapper div closed
 

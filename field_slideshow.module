@@ -507,7 +507,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
         $items[$delta]['caption'] = $items[$delta]['file']->$display['settings']['slideshow_caption'];
         if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption'][$langcode]))
           $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
-        if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption']['und']))
+        elseif (!empty($items[$delta]['caption']) && isset($items[$delta]['caption']['und']))
           $items[$delta]['caption'] = $items[$delta]['caption']['und'][0]['value'];
         else $items[$delta]['caption'] = '';
       }

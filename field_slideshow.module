@@ -553,9 +553,13 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             if ($display['settings']['slideshow_colorbox_image_style'] != '') {
               $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
             }
+            // get the correct field for identifying entity
+            $entity_info = entity_get_info($entity_type);
+            $entity_id_field = $entity_info['entity keys']['id'];
+            // add correct attributes
             $uri['options']['attributes'] = array(
               'class' => array('colorbox'),
-              'rel'   => 'field-slideshow[' . $entity->nid . ']',
+              'rel'   => 'field-slideshow[' . $entity_id_field . '-' . $entity->$entity_id_field . ']',
             );
             if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
             if (isset($display['settings']['slideshow_colorbox_slideshow']) && $display['settings']['slideshow_colorbox_slideshow'] != '') {

@@ -3,5 +3,6 @@ description = Provides a Slideshow format for displaying Image or Media fields.
 core = 7.x
 
 dependencies[] = image
+dependencies[] = libraries
 
 files[] = field_slideshow.module

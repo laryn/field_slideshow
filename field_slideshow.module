@@ -490,6 +490,18 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if (!isset($display['settings']['slideshow_colorbox_transition'])) $display['settings']['slideshow_colorbox_transition'] = 'elastic';
   if (!isset($display['settings']['slideshow_colorbox_speed'])) $display['settings']['slideshow_colorbox_speed'] = '350';
 
+  // Check plugins
+  $path = libraries_get_path('jquery.cycle');
+  if (!file_exists($path . '/jquery.cycle.all.min.js') && !file_exists($path . '/jquery.cycle.all.js')) {
+    drupal_set_message(t('JQuery Cycle must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))));
+  }
+  if ($display['settings']['slideshow_pager'] == 'carousel') {
+    $path = libraries_get_path('jcarousellite');
+    if (!file_exists($path . '/jcarousellite_1.0.1.pack.js') && !file_exists($path . '/jcarousellite_1.0.1.min.js') && !file_exists($path . '/jcarousellite_1.0.1.js')) {
+      drupal_set_message(t('JCarouselLite must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))));
+    }
+  }
+
   $element = array();
 
   // Media field support
@@ -809,12 +821,18 @@ function theme_field_slideshow($variables) {
 
   $output .= '</div>'; // .field-slideshow-wrapper div closed
 
-  // Add the Cycle plugin and the Js code
-  drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jquery.cycle.all.min.js');
+  // Add the JQuery plugins and the JS code
+  $path = libraries_get_path('jquery.cycle');
+  if (file_exists($path . '/jquery.cycle.all.min.js')) drupal_add_js($path . '/jquery.cycle.all.min.js');
+  elseif (file_exists($path . '/jquery.cycle.all.js')) drupal_add_js($path . '/jquery.cycle.all.js');
+
   if (isset($variables['pager']) && $variables['pager'] == 'carousel') {
-    drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/jcarousellite_1.0.1.min.js');
+    $path = libraries_get_path('jcarousellite');
+    if (file_exists($path . '/jcarousellite_1.0.1.pack.js')) drupal_add_js($path . '/jcarousellite_1.0.1.pack.js');
+    elseif (file_exists($path . '/jcarousellite_1.0.1.min.js')) drupal_add_js($path . '/jcarousellite_1.0.1.min.js');
+    elseif (file_exists($path . '/jcarousellite_1.0.1.js')) drupal_add_js($path . '/jcarousellite_1.0.1.js');
   }
-  drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/js/field_slideshow.js');
+  drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.js');
 
   // Add js variables
   unset($variables['items']);

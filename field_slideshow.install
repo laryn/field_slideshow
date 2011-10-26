@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Field Slideshow module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function field_slideshow_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $t = get_t();
+
+    $path = libraries_get_path('jquery.cycle');
+    if (file_exists($path . '/jquery.cycle.all.min.js') || file_exists($path . '/jquery.cycle.all.js')) {
+      $requirements['field_slideshow_cycle_plugin'] = array(
+        'title'     => $t('JQuery Cycle plugin'),
+        'severity'  => REQUIREMENT_OK,
+        'value'     => $t('Installed'),
+      );
+    }
+    else {
+      $requirements['field_slideshow_cycle_plugin'] = array(
+        'title'       => $t('JQuery Cycle plugin'),
+        'value'       => $t('Not found'),
+        'severity'    => REQUIREMENT_ERROR,
+        'description' => $t('You need to download the !name and move the downloaded js file(s) into the %path folder of your server.', array('!name' => l(t('JQuery Cycle plugin'), 'http://jquery.malsup.com/cycle/download.html'), '%path' => $path)),
+      );
+    }
+
+    $path = libraries_get_path('jcarousellite');
+    if (file_exists($path . '/jcarousellite_1.0.1.pack.js') || file_exists($path . '/jcarousellite_1.0.1.min.js') || file_exists($path . '/jcarousellite_1.0.1.js')) {
+      $requirements['field_slideshow_jcarousellite_plugin'] = array(
+        'title'     => $t('JCarouselLite plugin'),
+        'severity'  => REQUIREMENT_OK,
+        'value'     => $t('Installed'),
+      );
+    }
+    else {
+      $requirements['field_slideshow_jcarousellite_plugin'] = array(
+        'title'       => $t('JCarouselLite plugin'),
+        'value'       => $t('Not found'),
+        'severity'    => REQUIREMENT_WARNING,
+        'description' => $t('You need to download the !name and move the downloaded js file(s) into the %path folder of your server.', array('!name' => l(t('JCarouselLite 1.0.1 plugin'), 'http://www.gmarwaha.com/jquery/jcarousellite/#download'), '%path' => $path)),
+      );
+    }
+
+  }
+
+  return $requirements;
+}

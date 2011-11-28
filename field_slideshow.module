@@ -496,9 +496,9 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     drupal_set_message(t('JQuery Cycle must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))));
   }
   if ($display['settings']['slideshow_pager'] == 'carousel') {
-    $path = libraries_get_path('jcarousellite');
-    if (!file_exists($path . '/jcarousellite_1.0.1.pack.js') && !file_exists($path . '/jcarousellite_1.0.1.min.js') && !file_exists($path . '/jcarousellite_1.0.1.js')) {
-      drupal_set_message(t('JCarouselLite must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))));
+    $path = libraries_get_path('jquery.jcarousel');
+    if (!file_exists($path . '/jquery.jcarousel.min.js') && !file_exists($path . '/jquery.jcarousel.js')) {
+      drupal_set_message(t('JCarousel must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))));
     }
   }
 
@@ -827,10 +827,8 @@ function theme_field_slideshow($variables) {
   elseif (file_exists($path . '/jquery.cycle.all.js')) drupal_add_js($path . '/jquery.cycle.all.js');
 
   if (isset($variables['pager']) && $variables['pager'] == 'carousel') {
-    $path = libraries_get_path('jcarousellite');
-    if (file_exists($path . '/jcarousellite_1.0.1.pack.js')) drupal_add_js($path . '/jcarousellite_1.0.1.pack.js');
-    elseif (file_exists($path . '/jcarousellite_1.0.1.min.js')) drupal_add_js($path . '/jcarousellite_1.0.1.min.js');
-    elseif (file_exists($path . '/jcarousellite_1.0.1.js')) drupal_add_js($path . '/jcarousellite_1.0.1.js');
+    $path = libraries_get_path('jquery.jcarousel');
+    if (file_exists($path . '/jquery.jcarousel.min.js')) drupal_add_js($path . '/jquery.jcarousel.js');
   }
   drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.js');
 

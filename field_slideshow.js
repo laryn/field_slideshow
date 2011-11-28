@@ -17,12 +17,12 @@
             max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
             max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
           });
-		  $('.field-slideshow-slide a', slideshow).each(function() {
+          $('.field-slideshow-slide a', slideshow).each(function() {
             $this = $(this);
             max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
             max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
           });
-		  $('.field-slideshow-slide', slideshow).each(function() {
+          $('.field-slideshow-slide', slideshow).each(function() {
             $this = $(this);
             max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
             max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
@@ -54,16 +54,27 @@
                 return '#' + i + '-pager li:eq(' + idx + ') a';
               };
               if (settings.pager == 'carousel') {
-                var carouselops = { 
-                  btnNext:  "#" + i + "-carousel-wrapper .carousel-next",
-                  btnPrev:  "#" + i + "-carousel-wrapper .carousel-prev",
-                  visible:  parseInt(settings.carousel_visible),
-                  scroll:   parseInt(settings.carousel_scroll),
-                  speed:    parseInt(settings.carousel_speed),
+                var carouselops = {
+                  buttonNextHTML: null,
+                  buttonPrevHTML: null,
+                  visible: parseInt(settings.carousel_visible),
+                  scroll: parseInt(settings.carousel_scroll),
+                  animation: parseInt(settings.carousel_speed),
                   vertical: settings.carousel_vertical,
-                  circular: false
+                  wrap: 'circular',
+                  initCallback: function(carousel) {
+                    $(".carousel-next", carousel.container.parent()).bind('click', function() {
+                      carousel.next();
+                      return false;
+                    });
+                    $(".carousel-prev", carousel.container.parent()).bind('click', function() {
+                      carousel.prev();
+                      return false;
+                    });
+                  },
                 };
-                $("#" + i + "-carousel").jCarouselLite(carouselops)
+                
+                $("#" + i + "-carousel").jcarousel(carouselops);
               }
             }
           }

@@ -12,7 +12,7 @@ function field_slideshow_field_formatter_info() {
   $formatters = array(
     'slideshow' => array(
       'label'       => t('Slideshow'),
-      'field types' => array('image', 'media'),
+      'field types' => array('image', 'imagefield_crop', 'media'),
       'settings'    => array(
         'slideshow_image_style'               => '',
         'slideshow_link'                      => '',

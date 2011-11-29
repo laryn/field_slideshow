@@ -43,7 +43,7 @@ function field_slideshow_requirements($phase) {
       $requirements['field_slideshow_jcarousel_plugin'] = array(
         'title'       => $t('JCarousel plugin'),
         'value'       => $t('Not found'),
-        'severity'    => REQUIREMENT_WARNING,
+        'severity'    => REQUIREMENT_ERROR,
         'description' => $t('You need to download the !name and move /lib/jquery.jcarousel.js (or /lib/jquery.jcarousel.min.js) form the downloaded archive into the %path folder of your server.', array('!name' => l(t('JCarousel plugin'), 'http://sorgalla.com/jcarousel/'), '%path' => $path)),
       );
     }

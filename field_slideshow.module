@@ -491,15 +491,20 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if (!isset($display['settings']['slideshow_colorbox_speed'])) $display['settings']['slideshow_colorbox_speed'] = '350';
 
   // Check plugins
-  $path = libraries_get_path('jquery.cycle');
-  if (!file_exists($path . '/jquery.cycle.all.min.js') && !file_exists($path . '/jquery.cycle.all.js')) {
-    drupal_set_message(t('JQuery Cycle must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))));
-  }
-  if ($display['settings']['slideshow_pager'] == 'carousel') {
-    $path = libraries_get_path('jquery.jcarousel');
-    if (!file_exists($path . '/jquery.jcarousel.min.js') && !file_exists($path . '/jquery.jcarousel.js')) {
-      drupal_set_message(t('JCarousel must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))));
+  if (module_exists('libraries')) {
+    $path = libraries_get_path('jquery.cycle');
+    if (!file_exists($path . '/jquery.cycle.all.min.js') && !file_exists($path . '/jquery.cycle.all.js')) {
+      drupal_set_message(t('JQuery Cycle must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))), 'warning', FALSE);
     }
+    if ($display['settings']['slideshow_pager'] == 'carousel') {
+      $path = libraries_get_path('jquery.jcarousel');
+      if (!file_exists($path . '/jquery.jcarousel.min.js') && !file_exists($path . '/jquery.jcarousel.js')) {
+        drupal_set_message(t('JCarousel must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))), 'warning', FALSE);
+      }
+    }
+  }
+  else {
+    drupal_set_message(t('Please install the !module module in order to use Field Slideshow.', array('!module' => l('Libraries API', 'http://drupal.org/project/libraries'))), 'warning', FALSE);
   }
 
   $element = array();
@@ -822,15 +827,17 @@ function theme_field_slideshow($variables) {
   $output .= '</div>'; // .field-slideshow-wrapper div closed
 
   // Add the JQuery plugins and the JS code
-  $path = libraries_get_path('jquery.cycle');
-  if (file_exists($path . '/jquery.cycle.all.min.js')) drupal_add_js($path . '/jquery.cycle.all.min.js');
-  elseif (file_exists($path . '/jquery.cycle.all.js')) drupal_add_js($path . '/jquery.cycle.all.js');
+  if (module_exists('libraries')) {
+    $path = libraries_get_path('jquery.cycle');
+    if (file_exists($path . '/jquery.cycle.all.min.js')) drupal_add_js($path . '/jquery.cycle.all.min.js');
+    elseif (file_exists($path . '/jquery.cycle.all.js')) drupal_add_js($path . '/jquery.cycle.all.js');
 
-  if (isset($variables['pager']) && $variables['pager'] == 'carousel') {
-    $path = libraries_get_path('jquery.jcarousel');
-    if (file_exists($path . '/jquery.jcarousel.min.js')) drupal_add_js($path . '/jquery.jcarousel.js');
+    if (isset($variables['pager']) && $variables['pager'] == 'carousel') {
+      $path = libraries_get_path('jquery.jcarousel');
+      if (file_exists($path . '/jquery.jcarousel.min.js')) drupal_add_js($path . '/jquery.jcarousel.js');
+    }
+    drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.js');
   }
-  drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.js');
 
   // Add js variables
   unset($variables['items']);

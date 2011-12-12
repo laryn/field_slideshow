@@ -698,7 +698,7 @@ function theme_field_slideshow($variables) {
     $image['path'] = $item['uri'];
     $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
     if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
-    if (isset($variables['image_style'])) {
+    if (isset($variables['image_style']) && $variables['image_style'] != '') {
       $image['style_name'] = $variables['image_style'];
       $image_output = theme('image_style', $image);
     }
@@ -707,7 +707,7 @@ function theme_field_slideshow($variables) {
     }
 
     // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
-    if (isset($variables['image_style'])) {
+    if (isset($variables['image_style']) && $variables['image_style'] != '') {
       $image_path = image_style_path($variables['image_style'], $image['path']);
       // if thumbnail is not generated, do it, so we can get the dimensions
       if (!file_exists($image_path)) {

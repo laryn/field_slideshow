@@ -12,7 +12,7 @@ function field_slideshow_field_formatter_info() {
   $formatters = array(
     'slideshow' => array(
       'label'       => t('Slideshow'),
-      'field types' => array('image', 'imagefield_crop', 'media'),
+      'field types' => array('image', 'imagefield_crop', 'media', 'field_collection'),
       'settings'    => array(
         'slideshow_image_style'               => '',
         'slideshow_link'                      => '',
@@ -38,6 +38,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_carousel_scroll'           => '1',
         'slideshow_carousel_speed'            => '500',
         'slideshow_carousel_vertical'         => 0,
+        'slideshow_field_collection_image'    => '',
       ),
     ),
   );
@@ -51,6 +52,17 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
+  if ($field['type'] == 'field_collection') {
+    $element['slideshow_field_collection_image'] = array(
+      '#title'          => t('Image field'),
+      '#type'           => 'select',
+      '#default_value'  => $settings['slideshow_field_collection_image'],
+      '#empty_option'   => t('None'),
+      '#options'        => _field_slideshow_get_fields(array('image', 'imagefield_crop'), $field['type'], $field['field_name']),
+      '#required'       => TRUE,
+    );
+  }
+
   $element['slideshow_image_style'] = array(
     '#title'          => t('Image style'),
     '#type'           => 'select',
@@ -63,7 +75,8 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     'content' => t('Content'),
     'file'    => t('File'),
   );
-  if ($field['type'] == 'media') $links += _field_slideshow_get_media_links_fields();
+  if ($field['type'] == 'media' || $field['type'] == 'field_collection')
+    $links += _field_slideshow_get_fields(array('link_field', 'node_reference'), $field['type'], $field['field_name']);
   $element['slideshow_link'] = array(
     '#title'          => t('Link image to'),
     '#type'           => 'select',
@@ -143,7 +156,8 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     );
   }
 
-  if ($field['type'] == 'media') $captions = _field_slideshow_get_media_text_fields();
+  if ($field['type'] == 'media' || $field['type'] == 'field_collection')
+    $captions = _field_slideshow_get_fields(array('text'), $field['type'], $field['field_name']);
   else $captions = array(
     'title'   => t('Title text'),
     'alt'     => t('Alt text'),
@@ -211,6 +225,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#size'           => 5,
     '#default_value'  => $settings['slideshow_speed'],
     '#description'    => t('Duration of transition (ms).'),
+    '#required'       => TRUE,
   );
 
   $element['slideshow_timeout'] = array(
@@ -219,6 +234,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#size'           => 5,
     '#default_value'  => $settings['slideshow_timeout'],
     '#description'    => t('Time between transitions (ms). Enter 0 to disable automatic transitions (then, enable pager and/or controls).'),
+    '#required'       => TRUE,
   );
 
   $element['slideshow_order'] = array(
@@ -393,7 +409,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
     'file'      => t('file'),
     'colorbox'  => t('Colorbox'),
   );
-  if ($field['type'] == 'media') $link_types += _field_slideshow_get_media_links_fields();
+  if ($field['type'] == 'media' || $field['type'] == 'field_collection')
+    $link_types += _field_slideshow_get_fields(array('link_field', 'node_reference'), $field['type'], $field['field_name']);
   // Display this setting only if image is linked.
   if (isset($link_types[$settings['slideshow_link']])) {
     $link_type_message = t('Link to: @link', array('@link' => $link_types[$settings['slideshow_link']]));
@@ -415,7 +432,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
     $summary[] = $link_type_message;
   }
 
-  if ($field['type'] == 'media') $caption_types = _field_slideshow_get_media_text_fields();
+  if ($field['type'] == 'media' || $field['type'] == 'field_collection')
+    $caption_types = _field_slideshow_get_fields(array('text'), $field['type'], $field['field_name']);
   else $caption_types = array(
     'title' => t('Title text'),
     'alt'   => t('Alt text'),
@@ -475,20 +493,22 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
  * Implements hook_field_formatter_view().
  */
 function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $settings = $display['settings'];
 
   // Needed when upgrading to 1.1
-  if (!isset($display['settings']['slideshow_order'])) $display['settings']['slideshow_order'] = '';
-  if (!isset($display['settings']['slideshow_carousel_image_style'])) $display['settings']['slideshow_carousel_image_style'] = '';
-  if (!isset($display['settings']['slideshow_carousel_visible'])) $display['settings']['slideshow_carousel_visible'] = '3';
-  if (!isset($display['settings']['slideshow_carousel_scroll'])) $display['settings']['slideshow_carousel_scroll'] = '1';
-  if (!isset($display['settings']['slideshow_carousel_speed'])) $display['settings']['slideshow_carousel_speed'] = '500';
-  if (!isset($display['settings']['slideshow_carousel_vertical'])) $display['settings']['slideshow_carousel_vertical'] = 0;
-
+  if (!isset($settings['slideshow_order'])) $settings['slideshow_order'] = '';
+  if (!isset($settings['slideshow_carousel_image_style'])) $settings['slideshow_carousel_image_style'] = '';
+  if (!isset($settings['slideshow_carousel_visible'])) $settings['slideshow_carousel_visible'] = '3';
+  if (!isset($settings['slideshow_carousel_scroll'])) $settings['slideshow_carousel_scroll'] = '1';
+  if (!isset($settings['slideshow_carousel_speed'])) $settings['slideshow_carousel_speed'] = '500';
+  if (!isset($settings['slideshow_carousel_vertical'])) $settings['slideshow_carousel_vertical'] = 0;
   // Needed when upgrading to 1.2
-  if (!isset($display['settings']['slideshow_pager_position'])) $display['settings']['slideshow_pager_position'] = 'after';
-  if (!isset($display['settings']['slideshow_controls_position'])) $display['settings']['slideshow_controls_position'] = 'after';
-  if (!isset($display['settings']['slideshow_colorbox_transition'])) $display['settings']['slideshow_colorbox_transition'] = 'elastic';
-  if (!isset($display['settings']['slideshow_colorbox_speed'])) $display['settings']['slideshow_colorbox_speed'] = '350';
+  if (!isset($settings['slideshow_pager_position'])) $settings['slideshow_pager_position'] = 'after';
+  if (!isset($settings['slideshow_controls_position'])) $settings['slideshow_controls_position'] = 'after';
+  if (!isset($settings['slideshow_colorbox_transition'])) $settings['slideshow_colorbox_transition'] = 'elastic';
+  if (!isset($settings['slideshow_colorbox_speed'])) $settings['slideshow_colorbox_speed'] = '350';
+  // Needed when upgrading to 1.3
+  if (!isset($settings['slideshow_field_collection_image'])) $settings['slideshow_field_collection_image'] = '';
 
   // Check plugins
   if (module_exists('libraries')) {
@@ -496,7 +516,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     if (!file_exists($path . '/jquery.cycle.all.min.js') && !file_exists($path . '/jquery.cycle.all.js')) {
       drupal_set_message(t('JQuery Cycle must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))), 'warning', FALSE);
     }
-    if ($display['settings']['slideshow_pager'] == 'carousel') {
+    if ($settings['slideshow_pager'] == 'carousel') {
       $path = libraries_get_path('jquery.jcarousel');
       if (!file_exists($path . '/jquery.jcarousel.min.js') && !file_exists($path . '/jquery.jcarousel.js')) {
         drupal_set_message(t('JCarousel must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))), 'warning', FALSE);
@@ -516,19 +536,25 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       $items[$delta]['uri'] = $item['file']->uri;
     }
   }
+  // Field Collection support
+  elseif ($field['type'] == 'field_collection') {
+    foreach ($items as $delta => $item) {
+      $items[$delta] = (array) field_collection_field_get_entity($item);
+      $items[$delta]['uri'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['uri'];
+    }
+  }
 
   // Get correct caption
-  if ($display['settings']['slideshow_caption'] != '') {
+  if ($settings['slideshow_caption'] != '') {
     foreach ($items as $delta => $item) {
-      if ($field['type'] == 'media') {
-        $items[$delta]['caption'] = $items[$delta]['file']->$display['settings']['slideshow_caption'];
+      if ($field['type'] == 'media' || $field['type'] == 'field_collection') {
+        if ($field['type'] == 'media') $items[$delta]['caption'] = $items[$delta]['file']->$settings['slideshow_caption'];
+        elseif ($field['type'] == 'field_collection') $items[$delta]['caption'] = $items[$delta][$settings['slideshow_caption']];
         if (!empty($items[$delta]['caption']) && isset($items[$delta]['caption'][$langcode]))
           $items[$delta]['caption'] = $items[$delta]['caption'][$langcode][0]['value'];
-        elseif (!empty($items[$delta]['caption']) && isset($items[$delta]['caption']['und']))
-          $items[$delta]['caption'] = $items[$delta]['caption']['und'][0]['value'];
         else $items[$delta]['caption'] = '';
       }
-      else $items[$delta]['caption'] = $item[$display['settings']['slideshow_caption']];
+      else $items[$delta]['caption'] = $item[$settings['slideshow_caption']];
     }
   }
 
@@ -541,7 +567,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
 
     // Check if the formatter involves a link.
     $link_type = '';
-    switch ($display['settings'][$setting]) {
+    switch ($settings[$setting]) {
       case 'content':
         $uri = entity_uri($entity_type, $entity);
       break;
@@ -550,8 +576,8 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
         $link_type = 'file';
       break;
       default:
-        if ($field['type'] == 'media' && drupal_substr($display['settings'][$setting], 0, 6) == 'field_') {
-          $infos = field_info_field($display['settings'][$setting]);
+        if (($field['type'] == 'media' || $field['type'] == 'field_collection') && drupal_substr($settings[$setting], 0, 6) == 'field_') {
+          $infos = field_info_field($settings[$setting]);
           $link_type = $infos['type'];
         }
       break;
@@ -559,16 +585,17 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
 
     // Generate special links (other than node)
     foreach ($items as $delta => $item) {
+      $uri = array();
       switch ($link_type) {
         case 'file':
           $uri = array(
             'path'    => file_create_url($item['uri']),
             'options' => array(),
           );
-          if ($display['settings'][$setting] == 'colorbox') {
+          if ($settings[$setting] == 'colorbox') {
             // check if we need a thumbnaill and change the link
-            if ($display['settings']['slideshow_colorbox_image_style'] != '') {
-              $uri['path'] = image_style_url($display['settings']['slideshow_colorbox_image_style'], $item['uri']);
+            if ($settings['slideshow_colorbox_image_style'] != '') {
+              $uri['path'] = image_style_url($settings['slideshow_colorbox_image_style'], $item['uri']);
             }
             // get the correct field for identifying entity
             $entity_info = entity_get_info($entity_type);
@@ -578,26 +605,32 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
               'class' => array('colorbox'),
               'rel'   => 'field-slideshow[' . $entity_id_field . '-' . $entity->$entity_id_field . ']',
             );
-            if ($display['settings']['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
-            if (isset($display['settings']['slideshow_colorbox_slideshow']) && $display['settings']['slideshow_colorbox_slideshow'] != '') {
+            if ($settings['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
+            if (isset($settings['slideshow_colorbox_slideshow']) && $settings['slideshow_colorbox_slideshow'] != '') {
               $uri['options']['attributes']['class'] = array('colorbox-load');
-              $uri['path'] .= '?slideshow=true&slideshowAuto=' . (($display['settings']['slideshow_colorbox_slideshow'] == 'automatic') ? 'true':'false') . '&slideshowSpeed=' . $display['settings']['slideshow_colorbox_slideshow_speed'] . '&speed=' . $display['settings']['slideshow_colorbox_speed'] . '&transition=' . $display['settings']['slideshow_colorbox_transition'];
+              $uri['path'] .= '?slideshow=true&slideshowAuto=' . (($settings['slideshow_colorbox_slideshow'] == 'automatic') ? 'true':'false') . '&slideshowSpeed=' . $settings['slideshow_colorbox_slideshow_speed'] . '&speed=' . $settings['slideshow_colorbox_speed'] . '&transition=' . $settings['slideshow_colorbox_transition'];
             }
           }
         break;
         case 'link_field':
-          $pathfield = $item['file']->$display['settings'][$setting];
-          $uri = array(
-            'path'    => $pathfield[$langcode][0]['url'],
-            'options' => array(),
-          );
+          if ($field['type'] == 'media') $pathfield = $item['file']->$settings[$setting];
+          elseif ($field['type'] == 'field_collection') $pathfield = $item[$settings[$setting]];
+          if (isset($pathfield[$langcode])) {
+            $uri = array(
+              'path'    => $pathfield[$langcode][0]['url'],
+              'options' => array(),
+            );
+          }
         break;
         case 'node_reference':
-          $pathfield = $item['file']->$display['settings'][$setting];
-          $uri = array(
-            'path'    => drupal_get_path_alias('node/' . $pathfield[$langcode][0]['nid'], $langcode),
-            'options' => array(),
-          );
+          if ($field['type'] == 'media') $pathfield = $item['file']->$settings[$setting];
+          elseif ($field['type'] == 'field_collection') $pathfield = $item[$settings[$setting]];
+          if (isset($pathfield[$langcode])) {
+            $uri = array(
+              'path'    => drupal_get_path_alias('node/' . $pathfield[$langcode][0]['nid'], $langcode),
+              'options' => array(),
+            );
+          }
         break;
       }
       $items[$delta][$path] = isset($uri) ? $uri : '';
@@ -609,22 +642,22 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     $element[] = array(
       '#theme'                => 'field_slideshow',
       '#items'                => $items,
-      '#image_style'          => $display['settings']['slideshow_image_style'],
-      '#fx'                   => $display['settings']['slideshow_fx'],
-      '#speed'                => $display['settings']['slideshow_speed'],
-      '#timeout'              => $display['settings']['slideshow_timeout'],
-      '#order'                => $display['settings']['slideshow_order'],
-      '#controls'             => $display['settings']['slideshow_controls'],
-      '#controls_position'    => $display['settings']['slideshow_controls_position'],
-      '#pause'                => $display['settings']['slideshow_pause'],
-      '#pager'                => $display['settings']['slideshow_pager'],
-      '#pager_position'       => $display['settings']['slideshow_pager_position'],
-      '#pager_image_style'    => $display['settings']['slideshow_pager_image_style'],
-      '#carousel_image_style' => $display['settings']['slideshow_carousel_image_style'],
-      '#carousel_visible'     => $display['settings']['slideshow_carousel_visible'],
-      '#carousel_scroll'      => $display['settings']['slideshow_carousel_scroll'],
-      '#carousel_speed'       => $display['settings']['slideshow_carousel_speed'],
-      '#carousel_vertical'    => $display['settings']['slideshow_carousel_vertical'],
+      '#image_style'          => $settings['slideshow_image_style'],
+      '#fx'                   => $settings['slideshow_fx'],
+      '#speed'                => $settings['slideshow_speed'],
+      '#timeout'              => $settings['slideshow_timeout'],
+      '#order'                => $settings['slideshow_order'],
+      '#controls'             => $settings['slideshow_controls'],
+      '#controls_position'    => $settings['slideshow_controls_position'],
+      '#pause'                => $settings['slideshow_pause'],
+      '#pager'                => $settings['slideshow_pager'],
+      '#pager_position'       => $settings['slideshow_pager_position'],
+      '#pager_image_style'    => $settings['slideshow_pager_image_style'],
+      '#carousel_image_style' => $settings['slideshow_carousel_image_style'],
+      '#carousel_visible'     => $settings['slideshow_carousel_visible'],
+      '#carousel_scroll'      => $settings['slideshow_carousel_scroll'],
+      '#carousel_speed'       => $settings['slideshow_carousel_speed'],
+      '#carousel_vertical'    => $settings['slideshow_carousel_vertical'],
     );
   }
 
@@ -852,26 +885,29 @@ function theme_field_slideshow($variables) {
 /*
  * Helper functions.
  */
-function _field_slideshow_get_media_text_fields() {
-  $captions = array();
-  $fields = field_info_fields();
-  foreach ($fields as $name => $field) {
-    if (in_array('file', array_keys($field['bundles'])) && in_array('image', $field['bundles']['file']) && $field['type'] == 'text') {
-      $infos = field_info_instance('file', $name, 'image');
-      $captions[$name] = 'Media:' . $infos['label'];
-    }
-  }
-  return $captions;
-}
-
-function _field_slideshow_get_media_links_fields() {
+function _field_slideshow_get_fields($field_types, $entity_type, $field_name = '') {
   $links = array();
   $fields = field_info_fields();
+
+  switch ($entity_type) {
+    case 'media':
+      $bundle = 'file';
+      $bundle_instance = 'image';
+      $entity_label = t('Media field:');
+    break;
+    case 'field_collection':
+      $bundle = 'field_collection_item';
+      $bundle_instance = $field_name;
+      $entity_label = t('Field Collection field:');
+    break;
+  }
+
   foreach ($fields as $name => $field) {
-    if (in_array('file', array_keys($field['bundles'])) && in_array('image', $field['bundles']['file']) && ($field['type'] == 'link_field' || $field['type'] == 'node_reference')) {
-      $infos = field_info_instance('file', $name, 'image');
-      $links[$name] = 'Media:' . $infos['label'];
+    if (in_array($bundle, array_keys($field['bundles'])) && in_array($bundle_instance, $field['bundles'][$bundle]) && in_array($field['type'], $field_types)) {
+      $infos = field_info_instance($bundle, $name, $bundle_instance);
+      $links[$name] = $entity_label . ' ' . $infos['label'];
     }
   }
+
   return $links;
 }

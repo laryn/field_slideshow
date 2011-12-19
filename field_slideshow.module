@@ -730,6 +730,15 @@ function theme_field_slideshow($variables) {
     // Generate the image html
     $image['path'] = $item['uri'];
     $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
+    if (isset($item['width']) && isset($item['height'])) {
+      $image['width'] = $item['width'];
+      $image['height'] = $item['height'];
+    }
+    else {
+      $image_dims = getimagesize($image_path);
+      $image['width'] = $image_dims[0];
+      $image['height'] = $image_dims[1];
+    }
     if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
     if (isset($variables['image_style']) && $variables['image_style'] != '') {
       $image['style_name'] = $variables['image_style'];
@@ -740,18 +749,16 @@ function theme_field_slideshow($variables) {
     }
 
     // Get image sizes and add them the img tag, so height is correctly calctulated by Cycle
+    $dimensions = array(
+      'width' => $image['width'],
+      'height' => $image['height'],
+    );
     if (isset($variables['image_style']) && $variables['image_style'] != '') {
-      $image_path = image_style_path($variables['image_style'], $image['path']);
-      // if thumbnail is not generated, do it, so we can get the dimensions
-      if (!file_exists($image_path)) {
-        image_style_create_derivative(image_style_load($variables['image_style']), $image['path'], $image_path);
-      }
+      image_style_transform_dimensions($image['style_name'], $dimensions);
     }
-    else $image_path = $image['path'];
-    $image_dims = getimagesize($image_path);
-    $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
-    if ($image_dims[0] > $slides_max_width) $slides_max_width = $image_dims[0];
-    if ($image_dims[1] > $slides_max_height) $slides_max_height = $image_dims[1];
+
+    if ($dimensions['width'] > $slides_max_width) $slides_max_width = $dimensions['width'];
+    if ($dimensions['height'] > $slides_max_height) $slides_max_height = $dimensions['height'];
 
     // Generate the caption
     if (isset($item['caption']) && $item['caption'] != '') {
@@ -806,24 +813,24 @@ function theme_field_slideshow($variables) {
       foreach ($variables['items'] as $num => $item) {
         $image['path'] = $item['uri'];
         $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
+        if (isset($item['width']) && isset($item['height'])) {
+          $image['width'] = $item['width'];
+          $image['height'] = $item['height'];
+        }
+        else {
+          $image_dims = getimagesize($image_path);
+          $image['width'] = $image_dims[0];
+          $image['height'] = $image_dims[1];
+        }
         if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
         if ($image_style) {
           $image['style_name'] = $image_style;
           $image_output = theme('image_style', $image);
-          // Get image sizes and add them the img tag
-          $image_path = image_style_path($image_style, $image['path']);
-          // if thumbnail is not generated, do it, so we can get the dimensions
-          if (!file_exists($image_path)) {
-            image_style_create_derivative(image_style_load($image_style), $image['path'], $image_path);
-          }
         }
         else {
           $image_output = theme('image', $image);
           $image_path = $image['path'];
         }
-        $image_dims = getimagesize($image_path);
-        // adds width and height tags
-        $image_output = drupal_substr($image_output, 0, -2) . $image_dims[3] . ' />';
 
         $pager_output .= '<li><a href="#">' . $image_output . '</a></li>';
       }

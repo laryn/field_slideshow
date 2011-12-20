@@ -61,7 +61,6 @@
                   scroll: parseInt(settings.carousel_scroll),
                   animation: parseInt(settings.carousel_speed),
                   vertical: settings.carousel_vertical,
-                  wrap: 'circular',
                   initCallback: function(carousel) {
                     $(".carousel-next", carousel.container.parent()).bind('click', function() {
                       carousel.next();
@@ -73,6 +72,7 @@
                     });
                   },
                 };
+                if (parseInt(settings.carousel_circular)) carouselops.wrap = 'circular';
                 
                 $("#" + i + "-carousel").jcarousel(carouselops);
               }

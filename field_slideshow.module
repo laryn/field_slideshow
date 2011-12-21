@@ -597,6 +597,9 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       break;
     }
 
+    // Get the correct field for identifying entity (used to get correct links)
+    $entity_info = entity_get_info($entity_type);
+    $entity_id_field = $entity_info['entity keys']['id'];
     // Generate special links (other than node)
     foreach ($items as $delta => $item) {
       $uri = array();
@@ -611,9 +614,6 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             if ($settings['slideshow_colorbox_image_style'] != '') {
               $uri['path'] = image_style_url($settings['slideshow_colorbox_image_style'], $item['uri']);
             }
-            // get the correct field for identifying entity
-            $entity_info = entity_get_info($entity_type);
-            $entity_id_field = $entity_info['entity keys']['id'];
             // add correct attributes
             $uri['options']['attributes'] = array(
               'class' => array('colorbox'),

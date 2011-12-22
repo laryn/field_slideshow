@@ -532,7 +532,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     }
     if ($settings['slideshow_pager'] == 'carousel') {
       $path = libraries_get_path('jquery.jcarousel');
-      if (!file_exists($path . '/jquery.jcarousel.min.js') && !file_exists($path . '/jquery.jcarousel.js')) {
+      if (!file_exists($path . '/lib/jquery.jcarousel.min.js') && !file_exists($path . '/lib/jquery.jcarousel.js')) {
         drupal_set_message(t('JCarousel must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))), 'warning', FALSE);
       }
     }
@@ -890,7 +890,7 @@ function theme_field_slideshow($variables) {
 
     if (isset($variables['pager']) && $variables['pager'] == 'carousel') {
       $path = libraries_get_path('jquery.jcarousel');
-      if (file_exists($path . '/jquery.jcarousel.min.js')) drupal_add_js($path . '/jquery.jcarousel.js');
+      if (file_exists($path . '/lib/jquery.jcarousel.min.js')) drupal_add_js($path . '/lib/jquery.jcarousel.js');
     }
     drupal_add_js(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.js');
   }

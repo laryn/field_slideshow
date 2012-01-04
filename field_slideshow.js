@@ -70,7 +70,7 @@
                       carousel.prev();
                       return false;
                     });
-                  },
+                  }
                 };
                 if (parseInt(settings.carousel_circular)) carouselops.wrap = 'circular';
                 

@@ -48,8 +48,8 @@
           if (settings.pause) options.pause = true;
 
           if (settings.pager != '') {
-            options.pager = "#" + i + "-pager";
-            if (settings.pager == 'image' || settings.pager == 'carousel') {
+            if (settings.pager == 'number') options.pager = "#" + i + "-pager";
+            else if (settings.pager == 'image' || settings.pager == 'carousel') {
               options.pagerAnchorBuilder = function(idx, slide) {
                 return '#' + i + '-pager li:eq(' + idx + ') a';
               };
@@ -81,6 +81,15 @@
 
           // Cycle!
           slideshow.cycle(options); 
+
+          // After the numeric pager has been built by Cycle, add some classes for theming
+          if (settings.pager == 'number') {
+            $('.field-slideshow-pager a').each(function(){
+              $this = $(this);
+              $this.addClass('slide-' + $this.html());
+            });
+          }
+          
 
         }
 

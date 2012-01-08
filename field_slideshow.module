@@ -725,7 +725,7 @@ function template_preprocess_field_slideshow(&$variables) {
   $variables['slides_max_height'] = 0;
   foreach ($variables['items'] as $num => $item) {
     // Generate classes
-    $classes = array('field-slideshow-slide');
+    $classes = array('field-slideshow-slide', 'field-slideshow-slide-' . (1+$num));
     $field_slideshow_zebra = ($field_slideshow_zebra == 'odd') ? 'even' : 'odd';
     $classes[] = $field_slideshow_zebra;
     if ($num == 0) $classes[] = 'first';
@@ -734,6 +734,7 @@ function template_preprocess_field_slideshow(&$variables) {
 
     // Generate the image html
     $image['path'] = $item['uri'];
+    $image['attributes']['class'] = array('field-slideshow-image', 'field-slideshow-image-' . (1+$num));
     $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
     if (isset($item['width']) && isset($item['height'])) {
       $image['width'] = $item['width'];
@@ -797,6 +798,7 @@ function template_preprocess_field_slideshow(&$variables) {
       $thumbnails = array();
       foreach ($variables['items'] as $num => $item) {
         $thumbnail['path'] = $item['uri'];
+        $thumbnail['attributes']['class'] = array('field-slideshow-thumbnail', 'field-slideshow-thumbnail-' . (1+$num));
         $thumbnail['alt'] = isset($item['alt']) ? $item['alt'] : '';
         if (isset($item['width']) && isset($item['height'])) {
           $thumbnail['width'] = $item['width'];

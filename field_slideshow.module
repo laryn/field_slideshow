@@ -760,11 +760,32 @@ function template_preprocess_field_slideshow(&$variables) {
       'height' => $image['height'],
     );
     if (isset($variables['image_style']) && $variables['image_style'] != '') {
-      image_style_transform_dimensions($image['style_name'], $dimensions);
+      if (function_exists('image_style_transform_dimensions')) {
+        image_style_transform_dimensions($image['style_name'], $dimensions);
+      }
+      // manual calculation if Drupal < 7.9 or image_style_transform_dimensions doesn't work
+      if (!function_exists('image_style_transform_dimensions') || !is_numeric($dimensions['width'])) {
+        $thumbnail_path = image_style_path($variables['image_style'], $image['path']);
+        // if thumbnail is not generated, do it, so we can get the dimensions
+        if (!file_exists($thumbnail_path)) {
+          image_style_create_derivative(image_style_load($variables['image_style']), $image['path'], $thumbnail_path);
+        }
+        $thumbnail_dims = getimagesize($thumbnail_path);
+        $dimensions = array(
+          'width' => $thumbnail_dims[0],
+          'height' => $thumbnail_dims[1],
+        );
+      }
     }
 
-    if ($dimensions['width'] > $variables['slides_max_width']) $variables['slides_max_width'] = $dimensions['width'];
-    if ($dimensions['height'] > $variables['slides_max_height']) $variables['slides_max_height'] = $dimensions['height'];
+  // If the theme function hasn't added width and height attributes to the image, add them
+  if (strpos($variables['items'][$num]['image'], 'width=') === FALSE) {
+    $variables['items'][$num]['image'] = drupal_substr($variables['items'][$num]['image'], 0, -2) . "width=\"$dimensions[width]\" height=\"$dimensions[height]\" />";
+  }
+
+  // Keeps biggest dimensions
+  if ($dimensions['width'] > $variables['slides_max_width']) $variables['slides_max_width'] = $dimensions['width'];
+  if ($dimensions['height'] > $variables['slides_max_height']) $variables['slides_max_height'] = $dimensions['height'];
 
     // Add links if needed
     $links = array('path' => 'image');

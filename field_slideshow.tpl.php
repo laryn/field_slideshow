@@ -10,7 +10,7 @@
 
   <div class="<?php print $classes; ?>" style="width:<?php print $slides_max_width; ?>px; height:<?php print $slides_max_height; ?>px">
     <?php foreach ($items as $num => $item) : ?>
-      <div class="<?php print $item['classes']; ?>"<?php if ($num) { ?> style="display:none;"<?php } ?>>
+      <div class="<?php print $item['classes']; ?>"<?php if ($num) : ?> style="display:none;"<?php endif; ?>>
         <?php print $item['image']; ?>
         <?php if (isset($item['caption']) && $item['caption'] != '') : ?>
           <div class="field-slideshow-caption">

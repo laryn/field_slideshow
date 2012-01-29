@@ -799,7 +799,8 @@ function template_preprocess_field_slideshow(&$variables) {
         $options['html'] = TRUE;
         // Generate differnet rel attribute for image and caption, so colorbox doesn't double the image list
         if (isset($options['attributes']['rel'])) $options['attributes']['rel'] .= $out;
-        $variables['items'][$num][$out] = l($variables['items'][$num][$out], $path, $options);
+        $options = array_merge($options, drupal_parse_url($path));
+        $variables['items'][$num][$out] = l($variables['items'][$num][$out], $options['path'], $options);
       }
     }
   }

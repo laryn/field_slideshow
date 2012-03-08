@@ -3,8 +3,9 @@
     attach: function(context) {
 
       for (i in Drupal.settings.field_slideshow) {
-        var settings = Drupal.settings.field_slideshow[i];
-        var slideshow = $('.' + i);
+        var settings = Drupal.settings.field_slideshow[i],
+          slideshow = $('div.' + i),
+          num_slides = slideshow.children().length;
 
         if (!slideshow.hasClass('field-slideshow-processed')) {
           slideshow.addClass('field-slideshow-processed');
@@ -49,7 +50,7 @@
 
           if (settings.pager != '') {
             if (settings.pager == 'number') options.pager = "#" + i + "-pager";
-            else if (settings.pager == 'image' || settings.pager == 'carousel') {
+            else if ((settings.pager == 'image' || settings.pager == 'carousel') && num_slides > 1) {
               options.pagerAnchorBuilder = function(idx, slide) {
                 return '#' + i + '-pager li:eq(' + idx + ') a';
               };
@@ -79,15 +80,17 @@
             }
           }
 
-          // Cycle!
-          slideshow.cycle(options); 
+          if (num_slides > 1) {
+            // Cycle!
+            slideshow.cycle(options); 
 
-          // After the numeric pager has been built by Cycle, add some classes for theming
-          if (settings.pager == 'number') {
-            $('.field-slideshow-pager a').each(function(){
-              $this = $(this);
-              $this.addClass('slide-' + $this.html());
-            });
+            // After the numeric pager has been built by Cycle, add some classes for theming
+            if (settings.pager == 'number') {
+              $('.field-slideshow-pager a').each(function(){
+                $this = $(this);
+                $this.addClass('slide-' + $this.html());
+              });
+            }
           }
           
 

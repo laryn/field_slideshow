@@ -74,7 +74,7 @@
                   }
                 };
                 if (parseInt(settings.carousel_circular)) carouselops.wrap = 'circular';
-                
+
                 $("#" + i + "-carousel").jcarousel(carouselops);
               }
             }
@@ -82,7 +82,7 @@
 
           if (num_slides > 1) {
             // Cycle!
-            slideshow.cycle(options); 
+            slideshow.cycle(options);
 
             // After the numeric pager has been built by Cycle, add some classes for theming
             if (settings.pager == 'number') {
@@ -92,7 +92,6 @@
               });
             }
           }
-          
 
         }
 

@@ -63,6 +63,11 @@
                   animation: parseInt(settings.carousel_speed),
                   vertical: settings.carousel_vertical,
                   initCallback: function(carousel) {
+                    if (carousel.options.visible && num_slides <= carousel.options.visible) {
+                      // hide the carousel next and prev if all slide thumbs are displayed
+                      $(".carousel-prev, .carousel-next", carousel.container.parent()).addClass("hidden");
+                      return false;
+                    }
                     $(".carousel-next", carousel.container.parent()).bind('click', function() {
                       carousel.next();
                       return false;

@@ -20,6 +20,11 @@
 .field-slideshow-carousel li {
   opacity: 0.6;
 }
-  .field-slideshow-carousel li.activeSlide {
-    opacity: 1;
-  }
+.field-slideshow-carousel li.activeSlide {
+  opacity: 1;
+}
+
+.field-slideshow-carousel-wrapper .hidden {
+  display: none;
+  visibility: hidden;
+}

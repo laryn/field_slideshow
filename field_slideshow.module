@@ -37,6 +37,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_carousel_speed'            => '500',
         'slideshow_carousel_vertical'         => 0,
         'slideshow_carousel_circular'         => 0,
+        'slideshow_carousel_follow'           => 0,
         'slideshow_field_collection_image'    => '',
       ),
     ),
@@ -332,6 +333,17 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     ),
   );
 
+  $element['slideshow_carousel_follow'] = array(
+    '#title'          => t('Follow active slide'),
+    '#type'           => 'checkbox',
+    '#default_value'  => $settings['slideshow_carousel_follow'],
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'carousel'),
+      ),
+    ),
+  );
+
   $element['slideshow_carousel_vertical'] = array(
     '#title'          => t('Vertical Carousel'),
     '#type'           => 'checkbox',
@@ -468,6 +480,7 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
       $pager_image_message .= ', ' . t('Transition speed: @speed', array('@speed' => $settings['slideshow_carousel_speed']));
       if ($settings['slideshow_carousel_vertical']) $pager_image_message .= ', ' . t('Vertical');
       if ($settings['slideshow_carousel_circular']) $pager_image_message .= ', ' . t('Circular');
+      if ($settings['slideshow_carousel_follow']) $pager_image_message .= ', ' . t('Follow slide');
       $pager_image_message .= ')';
       $summary[] = $pager_image_message;
     break;
@@ -495,6 +508,8 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   // Needed when upgrading to 1.3
   if (!isset($settings['slideshow_field_collection_image'])) $settings['slideshow_field_collection_image'] = '';
   if (!isset($settings['slideshow_carousel_circular'])) $settings['slideshow_carousel_circular'] = 0;
+
+  if (!isset($settings['slideshow_carousel_follow'])) $settings['slideshow_carousel_follow'] = 0;
 
   // Check plugins
   if (module_exists('libraries')) {
@@ -643,6 +658,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#carousel_speed'       => $settings['slideshow_carousel_speed'],
       '#carousel_vertical'    => $settings['slideshow_carousel_vertical'],
       '#carousel_circular'    => $settings['slideshow_carousel_circular'],
+      '#carousel_follow'      => $settings['slideshow_carousel_follow'],
     );
   }
 
@@ -672,6 +688,7 @@ function field_slideshow_theme() {
         'carousel_speed'        => NULL,
         'carousel_vertical'     => NULL,
         'carousel_circular'     => NULL,
+        'carousel_follow'       => NULL,
       ),
       'template'     => 'field_slideshow',
     ),

@@ -81,7 +81,29 @@
                 if (parseInt(settings.carousel_circular)) carouselops.wrap = 'circular';
 
                 $("#" + i + "-carousel").jcarousel(carouselops);
+                // the pager is the direct item's parent element
+                options.pager = "#" + i + "-carousel .field-slideshow-pager";
               }
+            }
+          }
+
+          // Configure the cycle.before callback, it's called each time the slide change
+          options.before = function(currSlideElement, nextSlideElement, options, forwardFlag) {
+            // The options.nextSlide sometimes starts with 1 instead of 0, this is safer
+            var nextIndex = $(nextSlideElement).index();
+
+            // Add activeSlide manually for image pager
+            if (settings.pager == 'image') {
+              $('#' + i + '-pager li').removeClass("activeSlide");
+              $('#' + i + '-pager li:eq(' + nextIndex + ')').addClass("activeSlide");
+            }
+
+            // If we are using the carousel make it follow the activeSlide
+            // This will not work correctly with circular carousel until the version 0.3 of jcarousel
+            // is released so we disble this until then
+            if (settings.pager == 'carousel' && parseInt(settings.carousel_follow) && parseInt(settings.carousel_circular) == 0) {
+              var carousel = $("#" + i + "-carousel").data("jcarousel");
+              carousel.scroll(nextIndex, true);
             }
           }
 

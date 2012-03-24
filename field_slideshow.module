@@ -750,6 +750,7 @@ function template_preprocess_field_slideshow(&$variables) {
     $variables['items'][$num]['classes'] = implode(' ', $classes);
 
     // Generate the image html
+    $image = array();
     $image['path'] = $item['uri'];
     $image['attributes']['class'] = array('field-slideshow-image', 'field-slideshow-image-' . (1+$num));
     $image['alt'] = isset($item['alt']) ? $item['alt'] : '';
@@ -836,6 +837,7 @@ function template_preprocess_field_slideshow(&$variables) {
 
       $thumbnails = array();
       foreach ($variables['items'] as $num => $item) {
+        $thumbnail = array();
         $thumbnail['path'] = $item['uri'];
         $thumbnail['attributes']['class'] = array('field-slideshow-thumbnail', 'field-slideshow-thumbnail-' . (1+$num));
         $thumbnail['alt'] = isset($item['alt']) ? $item['alt'] : '';

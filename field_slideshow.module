@@ -354,7 +354,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
       ),
     ),
   );
-  
+
   $element['slideshow_carousel_circular'] = array(
     '#title'          => t('Circular Carousel'),
     '#type'           => 'checkbox',
@@ -822,7 +822,7 @@ function template_preprocess_field_slideshow(&$variables) {
       }
     }
   }
-  
+
   // Don't add controls if there's only one image
   if (count($variables['items']) == 1) {
     $variables['controls'] = 0;

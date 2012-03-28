@@ -604,7 +604,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             // add correct attributes
             $uri['options']['attributes'] = array(
               'class' => array('colorbox'),
-              'rel'   => 'field-slideshow[' . $entity_id_field . '-' . $entity->$entity_id_field . ']',
+              'rel'   => 'field-slideshow[' . $entity_id_field . '-' . $entity->$entity_id_field . $field["id"] . ']',
             );
             if ($settings['slideshow_caption'] != '') $uri['options']['attributes']['title'] = $item['caption'];
             if (isset($settings['slideshow_colorbox_slideshow']) && $settings['slideshow_colorbox_slideshow'] != '') {

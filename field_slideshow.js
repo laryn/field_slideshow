@@ -5,7 +5,8 @@
       for (i in Drupal.settings.field_slideshow) {
         var settings = Drupal.settings.field_slideshow[i],
           slideshow = $('div.' + i),
-          num_slides = slideshow.children().length;
+          num_slides = slideshow.children().length,
+          $this = false;
 
         if (!slideshow.hasClass('field-slideshow-processed')) {
           slideshow.addClass('field-slideshow-processed');
@@ -38,7 +39,8 @@
             resizing: 0,
             fx: settings.fx,
             speed: settings.speed,
-            timeout: parseInt(settings.timeout)
+            timeout: parseInt(settings.timeout),
+            index: i
           }
 
           if (settings.speed == "0" && settings.timeout == "0") options.fastOnEvent = true;
@@ -94,15 +96,15 @@
 
             // Add activeSlide manually for image pager
             if (settings.pager == 'image') {
-              $('#' + i + '-pager li').removeClass("activeSlide");
-              $('#' + i + '-pager li:eq(' + nextIndex + ')').addClass("activeSlide");
+              $('li', options.pager).removeClass("activeSlide");
+              $('li:eq(' + nextIndex + ')', options.pager).addClass("activeSlide");
             }
 
             // If we are using the carousel make it follow the activeSlide
             // This will not work correctly with circular carousel until the version 0.3 of jcarousel
             // is released so we disble this until then
             if (settings.pager == 'carousel' && parseInt(settings.carousel_follow) && parseInt(settings.carousel_circular) == 0) {
-              var carousel = $("#" + i + "-carousel").data("jcarousel");
+              var carousel = $("#" + options.index + "-carousel").data("jcarousel");
               carousel.scroll(nextIndex, true);
             }
           }

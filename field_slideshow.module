@@ -755,7 +755,7 @@ function template_preprocess_field_slideshow(&$variables) {
 
   // Add js variables
   $js_variables = $variables;
-  $js_variables["pager"] = $js_variables["pager"]["#pager"];
+  $js_variables["pager"] = isset($js_variables["pager"]["#pager"]) ? $js_variables["pager"]["#pager"]: FALSE;
   $offset = array_search('items', array_keys($js_variables)); // used to remove the big items array from js variables
   array_splice($js_variables, $offset, 1);
   drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['id'] => $js_variables)), 'setting');

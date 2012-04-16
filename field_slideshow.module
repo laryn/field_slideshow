@@ -697,6 +697,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#carousel_vertical'    => $settings['slideshow_carousel_vertical'],
       '#carousel_circular'    => $settings['slideshow_carousel_circular'],
       '#carousel_follow'      => $settings['slideshow_carousel_follow'],
+      '#entity'               => $entity,
     );
   }
 
@@ -729,6 +730,7 @@ function field_slideshow_theme() {
         'carousel_vertical'     => NULL,
         'carousel_circular'     => NULL,
         'carousel_follow'       => NULL,
+        'entity'                => NULL,
       ),
       'template'     => 'field_slideshow',
     ),

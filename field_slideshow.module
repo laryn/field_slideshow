@@ -598,7 +598,8 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     $link_type = '';
     switch ($settings[$setting]) {
       case 'content':
-        $uri = entity_uri($entity_type, $entity);
+        $content_uri = entity_uri($entity_type, $entity);
+        $link_type = 'content';
       break;
       case 'file':
       case 'colorbox':
@@ -619,6 +620,9 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     foreach ($items as $delta => $item) {
       $uri = array();
       switch ($link_type) {
+        case 'content':
+          $uri = $content_uri;
+        break;
         case 'file':
           $uri = array(
             'path'    => file_create_url($item['uri']),

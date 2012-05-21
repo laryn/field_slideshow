@@ -69,3 +69,11 @@ function field_slideshow_requirements($phase) {
 
   return $requirements;
 }
+
+/**
+ * Force clear cache.
+ * This is needed to register some new template files.
+ */
+function field_slideshow_update_7001() {
+  cache_clear_all();
+}

@@ -5,6 +5,15 @@
  *
  *
  */
+
+// Should fix issue #1502772
+// @todo: find a nicer way to fix this
+if (!isset($controls_position)) {
+  $controls_position = "after";
+}
+if (!isset($pager_position)) {
+  $pager_position = "after";
+}
 ?>
 <div id="field-slideshow-<?php print $id; ?>-wrapper" class="field-slideshow-wrapper">
 

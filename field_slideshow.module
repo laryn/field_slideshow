@@ -599,8 +599,6 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
 
   // Loop through required links (because image and caption can have different links).
   foreach ($links as $setting => $path) {
-    $uri = array();
-
     // Check if the formatter involves a link.
     $link_type = '';
     switch ($settings[$setting]) {

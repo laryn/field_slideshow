@@ -591,14 +591,20 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     'slideshow_link'          => 'path',
     'slideshow_caption_link'  => 'caption_path',
   );
-  // Loop thru required links (because image and caption can have different links)
+
+  $content_uri = entity_uri($entity_type, $entity);
+  // Get the correct field for identifying entity (used to get correct links)
+  $entity_info = entity_get_info($entity_type);
+  $entity_id_field = $entity_info['entity keys']['id'];
+
+  // Loop through required links (because image and caption can have different links).
   foreach ($links as $setting => $path) {
+    $uri = array();
 
     // Check if the formatter involves a link.
     $link_type = '';
     switch ($settings[$setting]) {
       case 'content':
-        $content_uri = entity_uri($entity_type, $entity);
         $link_type = 'content';
       break;
       case 'file':
@@ -613,9 +619,6 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       break;
     }
 
-    // Get the correct field for identifying entity (used to get correct links)
-    $entity_info = entity_get_info($entity_type);
-    $entity_id_field = $entity_info['entity keys']['id'];
     // Generate special links (other than node)
     foreach ($items as $delta => $item) {
       $uri = array();
@@ -666,9 +669,8 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
           }
         break;
       }
-      $items[$delta][$path] = isset($uri) ? $uri : '';
+      $items[$delta][$path] = !empty($uri) ? $uri : '';
     }
-    unset($uri, $link_type); // unset for next loop;
   }
 
   if (count($items)) {

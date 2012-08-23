@@ -51,8 +51,8 @@
           if (settings.pause) options.pause = true;
 
           if (settings.pager != '') {
-            if (settings.pager == 'number') options.pager = "#" + i + "-pager";
-            else if ((settings.pager == 'image' || settings.pager == 'carousel') && num_slides > 1) {
+            if (settings.pager == 'number' || settings.pager == 'image') options.pager = "#" + i + "-pager";
+            if ((settings.pager == 'image' || settings.pager == 'carousel') && num_slides > 1) {
               options.pagerAnchorBuilder = function(idx, slide) {
                 return '#' + i + '-pager li:eq(' + idx + ') a';
               };

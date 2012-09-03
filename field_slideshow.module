@@ -764,6 +764,11 @@ function template_preprocess_field_slideshow(&$variables) {
   $js_variables["pager"] = isset($js_variables["pager"]["#pager"]) ? $js_variables["pager"]["#pager"]: FALSE;
   $offset = array_search('items', array_keys($js_variables)); // used to remove the big items array from js variables
   array_splice($js_variables, $offset, 1);
+
+  // prevent recursion in json_encode()
+  if (isset($js_variables["entity"]) && isset($js_variables["entity"]->view)) {
+    unset($js_variables["entity"]->view);
+  }
   drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['id'] => $js_variables)), 'setting');
 
   // Add the JQuery plugins and the JS code

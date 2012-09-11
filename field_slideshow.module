@@ -401,7 +401,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
 function field_slideshow_form_alter(&$form, &$form_state, $form_id) {
   // If Colorbox slideshow is needed, enable required variable
   if ($form_id == 'field_ui_display_overview_form' && !empty($form_state['triggering_element'])) {
-    if (!empty($form_state['formatter_settings'])) {
+    if (!empty($form_state['formatter_settings']) && isset($form_state['triggering_element']['#field_name'])) {
       $field = $form_state['triggering_element']['#field_name'];
       if (isset($form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow']) && $form_state['formatter_settings'][$field]['slideshow_colorbox_slideshow'] != '')
         variable_set('colorbox_load', 1);

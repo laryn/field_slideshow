@@ -110,8 +110,20 @@
           }
 
           if (num_slides > 1) {
-            // Cycle!
-            slideshow.cycle(options);
+
+            if (settings.start_on_hover) {
+              //If start_on_hover is set, stop cycling onload, and only activate
+              //on hover
+              slideshow.cycle(options).cycle("pause").hover(function() {
+                $(this).cycle('resume');
+              },function(){
+                $(this).cycle('pause');
+              });
+            }
+            else {
+              // Cycle!
+              slideshow.cycle(options);
+            }
 
             // After the numeric pager has been built by Cycle, add some classes for theming
             if (settings.pager == 'number') {

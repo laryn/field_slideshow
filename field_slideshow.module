@@ -30,6 +30,7 @@ function field_slideshow_field_formatter_info() {
         'slideshow_controls'                  => 0,
         'slideshow_controls_position'         => 'after',
         'slideshow_pause'                     => 0,
+        'slideshow_start_on_hover'            => 0,
         'slideshow_pager'                     => '',
         'slideshow_pager_position'            => 'after',
         'slideshow_pager_image_style'         => '',
@@ -274,6 +275,12 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     '#default_value'  => $settings['slideshow_pause'],
   );
 
+  $element['slideshow_start_on_hover'] = array(
+    '#title'          => t('Activate on hover'),
+    '#type'           => 'checkbox',
+    '#default_value'  => $settings['slideshow_start_on_hover'],
+  );
+
   $element['slideshow_pager'] = array(
     '#title'          => t('Pager'),
     '#type'           => 'select',
@@ -481,6 +488,7 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
   }
   if (isset($settings['slideshow_controls']) && $settings['slideshow_controls']) $summary[] = t('Create prev/next controls');
   if (isset($settings['slideshow_pause']) && $settings['slideshow_pause']) $summary[] = t('Pause on hover');
+  if (isset($settings['slideshow_start_on_hover']) && $settings['slideshow_start_on_hover']) $summary[] = t('Activate on hover');
 
   switch ($settings['slideshow_pager']) {
     case 'number':
@@ -538,6 +546,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
   if (!isset($settings['slideshow_carousel_follow'])) $settings['slideshow_carousel_follow'] = 0;
   if (!isset($settings['slideshow_pager_position'])) $settings['slideshow_pager_position'] = 'after';
   if (!isset($settings['slideshow_controls_position'])) $settings['slideshow_controls_position'] = 'after';
+  if (!isset($settings['slideshow_start_on_hover'])) $settings['slideshow_start_on_hover'] = 0;
 
   // Check plugins
   if (module_exists('libraries')) {
@@ -693,6 +702,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#controls'             => ($settings['slideshow_controls'] === 1 ? $controls : array()),
       '#controls_position'    => $settings['slideshow_controls_position'],
       '#pause'                => $settings['slideshow_pause'],
+      '#start_on_hover'       => $settings['slideshow_start_on_hover'],
       '#pager'                => ($settings['slideshow_pager'] !== "" ? $pager : array()),
       '#pager_position'       => $settings['slideshow_pager_position'],
       '#carousel_visible'     => $settings['slideshow_carousel_visible'],
@@ -724,6 +734,7 @@ function field_slideshow_theme() {
         'controls'              => NULL,
         'controls_position'     => NULL,
         'pause'                 => NULL,
+        'start_on_hover'        => NULL,
         'pager'                 => NULL,
         'pager_position'        => NULL,
         'pager_image_style'     => NULL,

@@ -138,6 +138,40 @@
 
       }
 
+      // Recalculate height for responsive layouts
+      var rebuild_max_height = function(context) {
+        var max_height = 0;
+        var heights = $('.field-slideshow-slide',context).map(function ()
+        {
+          return $(this).height();
+        }).get(),
+        max_height = Math.max.apply(Math, heights);
+        if (max_height > 0) {
+          context.css("height", max_height);
+        }
+      };
+
+      if (jQuery.isFunction($.fn.imagesLoaded)) {
+        $('.field-slideshow').each(function() {
+          $('img',this).imagesLoaded(function($images) {
+            rebuild_max_height($images.parents('.field-slideshow'));
+          });
+        });
+      }
+      else {
+        $(window).load(function(){
+          $('.field-slideshow').each(function(){
+            rebuild_max_height($(this))
+          })
+        });
+
+      }
+      $(window).resize(function(){
+        $('.field-slideshow').each(function(){
+          rebuild_max_height($(this))
+        })
+      });
+
     }
   }
 })(jQuery);

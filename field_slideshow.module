@@ -79,7 +79,7 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     'file'    => t('File'),
   );
   if ($field['type'] == 'media' || $field['type'] == 'field_collection')
-    $links += _field_slideshow_get_fields(array('link_field', 'node_reference'), $field['type'], $field['field_name']);
+    $links += _field_slideshow_get_fields(array('link_field', 'node_reference', 'entityreference'), $field['type'], $field['field_name']);
   $element['slideshow_link'] = array(
     '#title'          => t('Link image to'),
     '#type'           => 'select',
@@ -675,6 +675,16 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
             );
           }
         break;
+        case 'entityreference':
+           if ($field['type'] == 'media') $pathfield = $item['file']->$settings[$setting];
+           elseif ($field['type'] == 'field_collection') $pathfield = $item[$settings[$setting]];
+           if (isset($pathfield[$langcode])) {
+             $uri = array(
+               'path'    => drupal_get_path_alias('node/' . $pathfield[$langcode][0]['target_id'], $langcode),
+               'options' => array(),
+             );
+           }
+         break;
       }
       $items[$delta][$path] = !empty($uri) ? $uri : '';
     }

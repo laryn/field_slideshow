@@ -676,15 +676,15 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
           }
         break;
         case 'entityreference':
-           if ($field['type'] == 'media') $pathfield = $item['file']->$settings[$setting];
-           elseif ($field['type'] == 'field_collection') $pathfield = $item[$settings[$setting]];
-           if (isset($pathfield[$langcode])) {
-             $uri = array(
-               'path'    => drupal_get_path_alias('node/' . $pathfield[$langcode][0]['target_id'], $langcode),
-               'options' => array(),
-             );
-           }
-         break;
+          if ($field['type'] == 'media') $pathfield = $item['file']->$settings[$setting];
+          elseif ($field['type'] == 'field_collection') $pathfield = $item[$settings[$setting]];
+          if (isset($pathfield[$langcode])) {
+            $uri = array(
+              'path'    => drupal_get_path_alias('node/' . $pathfield[$langcode][0]['target_id'], $langcode),
+              'options' => array(),
+            );
+          }
+        break;
       }
       $items[$delta][$path] = !empty($uri) ? $uri : '';
     }
@@ -756,6 +756,7 @@ function field_slideshow_theme() {
         'carousel_circular'     => NULL,
         'carousel_follow'       => NULL,
         'entity'                => NULL,
+        'breakpoints'           => NULL,
       ),
       'template'     => 'field_slideshow',
     ),
@@ -831,6 +832,7 @@ function template_preprocess_field_slideshow(&$variables) {
   $field_slideshow_zebra = 'odd';
   $variables['slides_max_width'] = 0;
   $variables['slides_max_height'] = 0;
+  $slide_theme = (isset($variables['breakpoints']) && isset($variables['breakpoints']['mapping']) && !empty($variables['breakpoints']['mapping'])) ? 'picture' : 'image_style';
   foreach ($variables['items'] as $num => $item) {
     // Generate classes
     $classes = array('field-slideshow-slide', 'field-slideshow-slide-' . (1+$num));
@@ -857,7 +859,8 @@ function template_preprocess_field_slideshow(&$variables) {
     if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
     if (isset($variables['image_style']) && $variables['image_style'] != '') {
       $image['style_name'] = $variables['image_style'];
-      $variables['items'][$num]['image'] = theme('image_style', $image);
+      $image['breakpoints'] = $variables['breakpoints'];
+      $variables['items'][$num]['image'] = theme($slide_theme, $image);
     }
     else {
       $variables['items'][$num]['image'] = theme('image', $image);

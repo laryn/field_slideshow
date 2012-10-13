@@ -6,7 +6,7 @@
  *
  */
 ?>
-<div id="field-slideshow-<?php print $id; ?>-controls" class="field-slideshow-controls">
+<div id="field-slideshow-<?php print $slideshow_id; ?>-controls" class="field-slideshow-controls">
   <a href="#" class="prev"><?php print t('Prev'); ?></a>
   <a href="#" class="next"><?php print t('Next'); ?></a>
 </div>

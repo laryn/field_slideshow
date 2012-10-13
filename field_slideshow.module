@@ -528,6 +528,8 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
  */
 function field_slideshow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
+  static $slideshow_count;
+  $slideshow_count = (is_int($slideshow_count)) ? $slideshow_count + 1 : 1;
 
   // Needed when upgrading to 1.1
   if (!isset($settings['slideshow_order'])) $settings['slideshow_order'] = '';
@@ -697,9 +699,11 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#pager'                => $settings['slideshow_pager'],
       '#pager_image_style'    => $settings['slideshow_pager_image_style'],
       '#carousel_image_style' => $settings['slideshow_carousel_image_style'],
+      '#slideshow_id'         => $slideshow_count,
     );
     $controls = array(
       '#theme'                => 'field_slideshow_controls',
+      '#slideshow_id'         => $slideshow_count,
     );
     $element[] = array(
       '#theme'                => 'field_slideshow',
@@ -722,6 +726,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#carousel_circular'    => $settings['slideshow_carousel_circular'],
       '#carousel_follow'      => $settings['slideshow_carousel_follow'],
       '#entity'               => $entity,
+      '#slideshow_id'         => $slideshow_count,
     );
   }
 
@@ -757,11 +762,14 @@ function field_slideshow_theme() {
         'carousel_follow'       => NULL,
         'entity'                => NULL,
         'breakpoints'           => NULL,
+        'slideshow_id'          => NULL,
       ),
       'template'     => 'field_slideshow',
     ),
     'field_slideshow_controls' => array(
-      'variables'    => array(),
+      'variables'    => array(
+        'slideshow_id'          => NULL,
+      ),
       'template'     => 'field_slideshow_controls',
     ),
     'field_slideshow_pager' => array(
@@ -770,6 +778,7 @@ function field_slideshow_theme() {
         'pager'                 => NULL,
         'pager_image_style'     => NULL,
         'carousel_image_style'  => NULL,
+        'slideshow_id'          => NULL,
       ),
       'template'     => 'field_slideshow_pager',
     ),
@@ -791,7 +800,7 @@ function template_preprocess_field_slideshow(&$variables) {
   if (isset($js_variables["entity"]) && isset($js_variables["entity"]->view)) {
     unset($js_variables["entity"]->view);
   }
-  drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['id'] => $js_variables)), 'setting');
+  drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['slideshow_id'] => $js_variables)), 'setting');
 
   // Add the JQuery plugins and the JS code
   if (module_exists('libraries')) {
@@ -816,7 +825,7 @@ function template_preprocess_field_slideshow(&$variables) {
   drupal_add_css(drupal_get_path('module', 'field_slideshow') . '/field_slideshow.css');
 
   // Generate classes
-  $variables['classes_array'][] = 'field-slideshow-' . $variables['id'];
+  $variables['classes_array'][] = 'field-slideshow-' . $variables['slideshow_id'];
   $variables['classes_array'][] = 'effect-' . $variables['fx'];
   $variables['classes_array'][] = 'timeout-' . $variables['timeout'];
   if (isset($variables['pager']) && $variables['pager'] != '') $variables['classes_array'][] = 'with-pager';
@@ -963,7 +972,7 @@ function template_preprocess_field_slideshow_pager(&$variables) {
     $variables['thumbnails'] = theme('item_list', array(
       'items'       => $thumbnails,
       'attributes'  => array(
-        'id'    => 'field-slideshow-' . $variables['id'] . '-pager',
+        'id'    => 'field-slideshow-' . $variables['slideshow_id'] . '-pager',
         'class' => 'field-slideshow-pager slides-' . count($variables['items']),
       ),
     ));

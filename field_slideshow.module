@@ -796,9 +796,9 @@ function template_preprocess_field_slideshow(&$variables) {
   $offset = array_search('items', array_keys($js_variables)); // used to remove the big items array from js variables
   array_splice($js_variables, $offset, 1);
 
-  // prevent recursion in json_encode()
-  if (isset($js_variables["entity"]) && isset($js_variables["entity"]->view)) {
-    unset($js_variables["entity"]->view);
+  // prevent recursion in json_encode(), and no need to pass the entity to js since it's not used
+  if (isset($js_variables["entity"])) {
+    unset($js_variables["entity"]);
   }
   drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['slideshow_id'] => $js_variables)), 'setting');
 

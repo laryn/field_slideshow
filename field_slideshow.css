@@ -35,3 +35,7 @@
   display: none;
   visibility: hidden;
 }
+
+.field-slideshow-controls .play {
+  display: none;
+}

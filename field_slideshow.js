@@ -132,6 +132,24 @@
                 $this.addClass('slide-' + $this.html());
               });
             }
+            // Keep a reference to the slideshow in the buttons since the slideshow variable
+            // becomes invalid if there are multiple slideshows (equal to the last slideshow)
+            $("#" + i + "-controls .play, #" + i + "-controls .pause").data("slideshow", slideshow);
+            // if the play/pause button is enabled link the events
+            $("#" + i + "-controls .play").click(function(e) {
+              e.preventDefault();
+              var target_slideshow = $(this).data("slideshow");
+              target_slideshow.cycle("resume", true);
+              $(this).hide();
+              $(this).parent().find(".pause").show();
+            });
+            $("#" + i + "-controls .pause").click(function(e) {
+              e.preventDefault();
+              var target_slideshow = $(this).data("slideshow");
+              target_slideshow.cycle("pause");
+              $(this).hide();
+              $(this).parent().find(".play").show();
+            });
           }
 
         }

@@ -40,7 +40,8 @@
             fx: settings.fx,
             speed: settings.speed,
             timeout: parseInt(settings.timeout),
-            index: i
+            index: i,
+            settings: settings
           }
 
           if (settings.speed == "0" && settings.timeout == "0") options.fastOnEvent = true;
@@ -91,11 +92,15 @@
 
           // Configure the cycle.before callback, it's called each time the slide change
           options.before = function(currSlideElement, nextSlideElement, options, forwardFlag) {
+            // In this function we access the settins with options.settings
+            // since the settings variable will be equal to the last slideshow settings
+            // Acessing directly settings may cause issues if there are more than 1 slideshow
+
             // The options.nextSlide sometimes starts with 1 instead of 0, this is safer
             var nextIndex = $(nextSlideElement).index();
 
             // Add activeSlide manually for image pager
-            if (settings.pager == 'image') {
+            if (options.settings.pager == 'image') {
               $('li', options.pager).removeClass("activeSlide");
               $('li:eq(' + nextIndex + ')', options.pager).addClass("activeSlide");
             }
@@ -103,7 +108,7 @@
             // If we are using the carousel make it follow the activeSlide
             // This will not work correctly with circular carousel until the version 0.3 of jcarousel
             // is released so we disble this until then
-            if (settings.pager == 'carousel' && parseInt(settings.carousel_follow) && parseInt(settings.carousel_circular) == 0) {
+            if (options.settings.pager == 'carousel' && parseInt(options.settings.carousel_follow) && parseInt(options.settings.carousel_circular) == 0) {
               var carousel = $("#" + options.index + "-carousel").data("jcarousel");
               carousel.scroll(nextIndex, true);
             }

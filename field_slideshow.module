@@ -724,24 +724,29 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#theme'                => 'field_slideshow',
       '#items'                => $items,
       '#image_style'          => $settings['slideshow_image_style'],
-      '#fx'                   => $settings['slideshow_fx'],
-      '#speed'                => $settings['slideshow_speed'],
-      '#timeout'              => $settings['slideshow_timeout'],
       '#order'                => $settings['slideshow_order'],
       '#controls'             => ($settings['slideshow_controls'] === 1 ? $controls : array()),
       '#controls_position'    => $settings['slideshow_controls_position'],
-      '#pause'                => $settings['slideshow_pause'],
-      '#start_on_hover'       => $settings['slideshow_start_on_hover'],
       '#pager'                => ($settings['slideshow_pager'] !== "" ? $pager : array()),
       '#pager_position'       => $settings['slideshow_pager_position'],
-      '#carousel_visible'     => $settings['slideshow_carousel_visible'],
-      '#carousel_scroll'      => $settings['slideshow_carousel_scroll'],
-      '#carousel_speed'       => $settings['slideshow_carousel_speed'],
-      '#carousel_vertical'    => $settings['slideshow_carousel_vertical'],
-      '#carousel_circular'    => $settings['slideshow_carousel_circular'],
-      '#carousel_follow'      => $settings['slideshow_carousel_follow'],
       '#entity'               => $entity,
       '#slideshow_id'         => $slideshow_count,
+      '#js_variables'         => array(
+        'fx'                   => $settings['slideshow_fx'],
+        'speed'                => $settings['slideshow_speed'],
+        'timeout'              => $settings['slideshow_timeout'],
+        'pause'                => $settings['slideshow_pause'],
+        'start_on_hover'       => $settings['slideshow_start_on_hover'],
+        'carousel_visible'     => $settings['slideshow_carousel_visible'],
+        'carousel_scroll'      => $settings['slideshow_carousel_scroll'],
+        'carousel_speed'       => $settings['slideshow_carousel_speed'],
+        'carousel_vertical'    => $settings['slideshow_carousel_vertical'],
+        'carousel_circular'    => $settings['slideshow_carousel_circular'],
+        'carousel_follow'      => $settings['slideshow_carousel_follow'],
+        // Need to access the following variables in js too
+        'pager'                => ($settings['slideshow_pager'] !== "" ? $pager : array()),
+        'controls'             => ($settings['slideshow_controls'] === 1 ? $controls : array()),
+      ),
     );
   }
 
@@ -757,28 +762,18 @@ function field_slideshow_theme() {
       'variables'     => array(
         'items'                 => NULL,
         'image_style'           => NULL,
-        'speed'                 => NULL,
-        'fx'                    => NULL,
-        'timeout'               => NULL,
         'order'                 => NULL,
         'controls'              => NULL,
         'controls_pause'        => NULL,
         'controls_position'     => NULL,
-        'pause'                 => NULL,
-        'start_on_hover'        => NULL,
         'pager'                 => NULL,
         'pager_position'        => NULL,
         'pager_image_style'     => NULL,
         'carousel_image_style'  => NULL,
-        'carousel_visible'      => NULL,
-        'carousel_scroll'       => NULL,
-        'carousel_speed'        => NULL,
-        'carousel_vertical'     => NULL,
-        'carousel_circular'     => NULL,
-        'carousel_follow'       => NULL,
         'entity'                => NULL,
         'breakpoints'           => NULL,
         'slideshow_id'          => NULL,
+        'js_variables'          => array(),
       ),
       'template'     => 'field_slideshow',
     ),
@@ -808,15 +803,11 @@ function field_slideshow_theme() {
 function template_preprocess_field_slideshow(&$variables) {
 
   // Add js variables
-  $js_variables = $variables;
+  $js_variables = $variables["js_variables"];
   $js_variables["pager"] = isset($js_variables["pager"]["#pager"]) ? $js_variables["pager"]["#pager"]: FALSE;
   $offset = array_search('items', array_keys($js_variables)); // used to remove the big items array from js variables
   array_splice($js_variables, $offset, 1);
 
-  // prevent recursion in json_encode(), and no need to pass the entity to js since it's not used
-  if (isset($js_variables["entity"])) {
-    unset($js_variables["entity"]);
-  }
   drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['slideshow_id'] => $js_variables)), 'setting');
 
   // Add the JQuery plugins and the JS code
@@ -843,8 +834,8 @@ function template_preprocess_field_slideshow(&$variables) {
 
   // Generate classes
   $variables['classes_array'][] = 'field-slideshow-' . $variables['slideshow_id'];
-  $variables['classes_array'][] = 'effect-' . $variables['fx'];
-  $variables['classes_array'][] = 'timeout-' . $variables['timeout'];
+  $variables['classes_array'][] = 'effect-' . $variables['js_variables']['fx'];
+  $variables['classes_array'][] = 'timeout-' . $variables['js_variables']['timeout'];
   if (isset($variables['pager']) && $variables['pager'] != '') $variables['classes_array'][] = 'with-pager';
   if (isset($variables['controls'])) $variables['classes_array'][] = 'with-controls';
 

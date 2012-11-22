@@ -801,7 +801,6 @@ function field_slideshow_theme() {
  * Implements template_preprocess().
  */
 function template_preprocess_field_slideshow(&$variables) {
-
   // Add js variables
   $js_variables = $variables["js_variables"];
   $js_variables["pager"] = isset($js_variables["pager"]["#pager"]) ? $js_variables["pager"]["#pager"]: FALSE;

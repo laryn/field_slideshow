@@ -744,7 +744,7 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
         'carousel_circular'    => $settings['slideshow_carousel_circular'],
         'carousel_follow'      => $settings['slideshow_carousel_follow'],
         // Need to access the following variables in js too
-        'pager'                => ($settings['slideshow_pager'] !== "" ? $pager : array()),
+        'pager'                => $settings['slideshow_pager'],
         'controls'             => ($settings['slideshow_controls'] === 1 ? $controls : array()),
       ),
     );
@@ -803,7 +803,6 @@ function field_slideshow_theme() {
 function template_preprocess_field_slideshow(&$variables) {
   // Add js variables
   $js_variables = $variables["js_variables"];
-  $js_variables["pager"] = isset($js_variables["pager"]["#pager"]) ? $js_variables["pager"]["#pager"]: FALSE;
 
   drupal_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['slideshow_id'] => $js_variables)), 'setting');
 

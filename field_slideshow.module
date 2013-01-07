@@ -595,6 +595,8 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     foreach ($items as $delta => $item) {
       $items[$delta] = (array) field_collection_field_get_entity($item);
       $items[$delta]['uri'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['uri'];
+      $items[$delta]['title'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['title'];
+      $items[$delta]['alt'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['alt'];
     }
   }
 

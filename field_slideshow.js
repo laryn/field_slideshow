@@ -1,6 +1,19 @@
 (function($) {
   Drupal.behaviors.field_slideshow = {
     attach: function(context) {
+      // Recalculate height for responsive layouts
+      var rebuild_max_height = function(context) {
+        var max_height = 0;
+        var heights = $('.field-slideshow-slide',context).map(function ()
+        {
+          //return $(this).outerHeight(true);
+          return $(this).height();
+        }).get(),
+        max_height = Math.max.apply(Math, heights);
+        if (max_height > 0) {
+          context.css("height", max_height);
+        }
+      };
 
       for (i in Drupal.settings.field_slideshow) {
         var settings = Drupal.settings.field_slideshow[i],
@@ -10,29 +23,6 @@
 
         if (!slideshow.hasClass('field-slideshow-processed')) {
           slideshow.addClass('field-slideshow-processed');
-
-          // Add padding if needed
-          var max_outerWidth = 0;
-          var max_outerHeight = 0;
-          $('.field-slideshow-slide img', slideshow).each(function() {
-            $this = $(this);
-            max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
-            max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
-          });
-          $('.field-slideshow-slide a', slideshow).each(function() {
-            $this = $(this);
-            max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
-            max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
-          });
-          $('.field-slideshow-slide', slideshow).each(function() {
-            $this = $(this);
-            max_outerWidth = Math.max(max_outerWidth, $this.outerWidth(true));
-            max_outerHeight = Math.max(max_outerHeight, $this.outerHeight(true));
-          });
-          slideshow.css({
-            'padding-right': (max_outerWidth - parseInt(slideshow.css('width'))) + 'px',
-            'padding-bottom': (max_outerHeight - parseInt(slideshow.css('height'))) + 'px'
-          });
 
           // Add options
           var options = {
@@ -164,19 +154,6 @@
         }
 
       }
-
-      // Recalculate height for responsive layouts
-      var rebuild_max_height = function(context) {
-        var max_height = 0;
-        var heights = $('.field-slideshow-slide',context).map(function ()
-        {
-          return $(this).height();
-        }).get(),
-        max_height = Math.max.apply(Math, heights);
-        if (max_height > 0) {
-          context.css("height", max_height);
-        }
-      };
 
       if (jQuery.isFunction($.fn.imagesLoaded)) {
         $('.field-slideshow').each(function() {

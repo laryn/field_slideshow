@@ -904,10 +904,10 @@ function template_preprocess_field_slideshow(&$variables) {
     if (isset($variables['image_style']) && $variables['image_style'] != '') {
       $image['style_name'] = $variables['image_style'];
       $image['breakpoints'] = $variables['breakpoints'];
-      $variables['items'][$num]['image'] = "<span class='inner-slide'>" . theme($slide_theme, $image) . "</span>";
+      $variables['items'][$num]['image'] = "<div class='inner-slide'>" . theme($slide_theme, $image) . "</div>";
     }
     else {
-      $variables['items'][$num]['image'] = "<span class='inner-slide'>" . theme('image', $image) . "</span>";
+      $variables['items'][$num]['image'] = "<div class='inner-slide'>" . theme('image', $image) . "</div>";
     }
 
     // Get image sizes and keeps the bigger ones, so height is correctly calculated by Cycle

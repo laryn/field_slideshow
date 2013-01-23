@@ -1,8 +1,27 @@
 (function($) {
   Drupal.behaviors.field_slideshow = {
-    attach: function(context) {
+    attach: function(context, max_width) {
+      // Resize video (iframe, object, embed)
+      var resize_videos = function(context, max_width) {
+        console.log(max_width);
+        $("iframe, object, embed").each(function() {
+          // Save original object size
+          if (!$(this).data("ratio")) {
+            $(this).data("ratio", parseInt($(this).css("width"), 10) / parseInt($(this).css("height"), 10));
+            $(this).data("width", parseInt($(this).css("width"), 10));
+          }
+          // Prevent the video to be larger than the original size
+          $(this).width(Math.min(max_width, $(this).data("width")));
+          // Define the height to preserve the ratio
+          $(this).height(max_width / $(this).data("ratio"));
+          // Resize the frame containing the video too
+          $(this).closest(".field-slideshow-slide").height($(this).height());
+        });
+      };
+
       // Recalculate height for responsive layouts
       var rebuild_max_height = function(context) {
+        resize_videos(context, $(context).width());
         var max_height = 0;
         var heights = $('.field-slideshow-slide',context).map(function ()
         {

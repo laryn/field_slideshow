@@ -921,7 +921,7 @@ function template_preprocess_field_slideshow(&$variables) {
       $image['width'] = $item['width'];
       $image['height'] = $item['height'];
     }
-    else {
+    elseif ($item["type"] == 'image'){
       $image_dims = getimagesize($image['path']);
       $image['width'] = $image_dims[0];
       $image['height'] = $image_dims[1];

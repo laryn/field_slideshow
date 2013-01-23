@@ -921,16 +921,26 @@ function template_preprocess_field_slideshow(&$variables) {
       $image['width'] = $item['width'];
       $image['height'] = $item['height'];
     }
-    elseif ($item["type"] == 'image'){
+    elseif ($item["type"] == 'image') {
       $image_dims = getimagesize($image['path']);
       $image['width'] = $image_dims[0];
       $image['height'] = $image_dims[1];
+    }
+    else {
+      $image = array(
+        'width' => 0,
+        'height' => 0
+      );
     }
     if (isset($item['title']) && drupal_strlen($item['title']) > 0) $image['title'] = $item['title'];
     if (isset($variables['image_style']) && $variables['image_style'] != '') {
       $image['style_name'] = $variables['image_style'];
       $image['breakpoints'] = $variables['breakpoints'];
       $variables['items'][$num]['image'] = "<div class='inner-slide'>" . theme($slide_theme, $image) . "</div>";
+    }
+    elseif (isset($variables['file_style']) && $variables['file_style'] != '') {
+      $media = file_view((object) $variables['items'][$num], $variables['file_style']);
+      $variables['items'][$num]['image'] = "<div class='inner-slide'>" . render($media) . "</div>";
     }
     else {
       $variables['items'][$num]['image'] = "<div class='inner-slide'>" . theme('image', $image) . "</div>";
@@ -941,6 +951,7 @@ function template_preprocess_field_slideshow(&$variables) {
       'width' => $image['width'],
       'height' => $image['height'],
     );
+
     if (isset($variables['image_style']) && $variables['image_style'] != '') {
       if (function_exists('image_style_transform_dimensions')) {
         image_style_transform_dimensions($image['style_name'], $dimensions);
@@ -961,7 +972,7 @@ function template_preprocess_field_slideshow(&$variables) {
     }
 
   // If the theme function hasn't added width and height attributes to the image, add them
-  if (strpos($variables['items'][$num]['image'], 'width=') === FALSE) {
+  if ($item["type"] == 'image' && strpos($variables['items'][$num]['image'], 'width=') === FALSE) {
     $variables['items'][$num]['image'] = drupal_substr($variables['items'][$num]['image'], 0, -2) . "width=\"$dimensions[width]\" height=\"$dimensions[height]\" />";
   }
 

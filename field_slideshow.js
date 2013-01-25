@@ -1,6 +1,6 @@
 (function($) {
   Drupal.behaviors.field_slideshow = {
-    attach: function(context, max_width) {
+    attach: function(context) {
       // Resize video (iframe, object, embed)
       var resize_videos = function(context, max_width) {
         $("iframe, object, embed").each(function() {

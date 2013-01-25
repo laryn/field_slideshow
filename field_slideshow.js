@@ -12,12 +12,23 @@
             $slide.data("width", parseInt($this.attr("width"), 10));
             $this.removeAttr("width").removeAttr("height");
           }
+          // calculate the slide dimension
+          var slide_width = Math.min(max_width, $slide.data("width"));
+          var slide_height = max_width / $slide.data("ratio")
           // Resize the iframe / object / embed
           $this.css({
-            width: Math.min(max_width, $slide.data("width")),
-            height: max_width / $slide.data("ratio")
+            width: slide_width,
+            height: slide_height
           });
-          // Resize the frame containing the video too
+          // By default there are outer-wrappers elements with the size defined too.
+          // So we find all elements in the slide with a class ending with -outer-wrapper
+          // and we set their size. Setting this to "auto" or "100%" cause the youtube video
+          // to scale down but never scale up.
+          $slide.find("[class$='-outer-wrapper']").css({
+            width: slide_width,
+            height: slide_height
+          });
+          // Resize the frame containing the video
           $slide.height($this.height());
         });
       };

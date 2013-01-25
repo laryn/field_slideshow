@@ -5,17 +5,20 @@
       var resize_videos = function(context, max_width) {
         $("iframe, object, embed").each(function() {
           var $this = $(this);
-          // Save original object size
-          if (!$(this).data("ratio")) {
-            $this.data("ratio", parseInt($this.css("width"), 10) / parseInt($this.css("height"), 10));
-            $this.data("width", parseInt($this.css("width"), 10));
+          // Save original object size in the slide div since object and embed don't support data
+          var $slide = $this.closest(".field-slideshow-slide");
+          if (!$slide.data("ratio")) {
+            $slide.data("ratio", parseInt($this.attr("width"), 10) / parseInt($this.attr("height"), 10));
+            $slide.data("width", parseInt($this.attr("width"), 10));
+            $this.removeAttr("width").removeAttr("height");
           }
-          // Prevent the video to be larger than the original size
-          $this.width(Math.min(max_width, $this.data("width")));
-          // Define the height to preserve the ratio
-          $this.height(max_width / $this.data("ratio"));
+          // Resize the iframe / object / embed
+          $this.css({
+            width: Math.min(max_width, $slide.data("width")),
+            height: max_width / $slide.data("ratio")
+          });
           // Resize the frame containing the video too
-          $this.closest(".field-slideshow-slide").height($this.height());
+          $slide.height($this.height());
         });
       };
 

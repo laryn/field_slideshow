@@ -1,21 +1,35 @@
 (function($) {
   Drupal.behaviors.field_slideshow = {
-    attach: function(context, max_width) {
+    attach: function(context) {
       // Resize video (iframe, object, embed)
       var resize_videos = function(context, max_width) {
         $("iframe, object, embed").each(function() {
           var $this = $(this);
-          // Save original object size
-          if (!$(this).data("ratio")) {
-            $this.data("ratio", parseInt($this.css("width"), 10) / parseInt($this.css("height"), 10));
-            $this.data("width", parseInt($this.css("width"), 10));
+          // Save original object size in the slide div since object and embed don't support data
+          var $slide = $this.closest(".field-slideshow-slide");
+          if (!$slide.data("ratio")) {
+            $slide.data("ratio", parseInt($this.attr("width"), 10) / parseInt($this.attr("height"), 10));
+            $slide.data("width", parseInt($this.attr("width"), 10));
+            $this.removeAttr("width").removeAttr("height");
           }
-          // Prevent the video to be larger than the original size
-          $this.width(Math.min(max_width, $this.data("width")));
-          // Define the height to preserve the ratio
-          $this.height(max_width / $this.data("ratio"));
-          // Resize the frame containing the video too
-          $this.closest(".field-slideshow-slide").height($this.height());
+          // calculate the slide dimension
+          var slide_width = Math.min(max_width, $slide.data("width"));
+          var slide_height = max_width / $slide.data("ratio")
+          // Resize the iframe / object / embed
+          $this.css({
+            width: slide_width,
+            height: slide_height
+          });
+          // By default there are outer-wrappers elements with the size defined too.
+          // So we find all elements in the slide with a class ending with -outer-wrapper
+          // and we set their size. Setting this to "auto" or "100%" cause the youtube video
+          // to scale down but never scale up.
+          $slide.find("[class$='-outer-wrapper']").css({
+            width: slide_width,
+            height: slide_height
+          });
+          // Resize the frame containing the video
+          $slide.height($this.height());
         });
       };
 

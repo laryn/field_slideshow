@@ -380,12 +380,14 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
   );
 
   $skin_options = array();
-  $path = libraries_get_path('jquery.jcarousel') . '/skins';
-  $dirnames = scandir($path);
-  foreach ($dirnames as $dirname) {
-    $dirname = check_plain($dirname);
-    if (is_dir($path . '/' . $dirname) && file_exists($path . '/' . $dirname . '/skin.css')) {
-      $skin_options[$dirname] = $dirname;
+  if ($jcarousel_path = libraries_get_path('jquery.jcarousel')) {
+    $path = $jcarousel_path . '/skins';
+    $dirnames = scandir($path);
+    foreach ($dirnames as $dirname) {
+      $dirname = check_plain($dirname);
+      if (is_dir($path . '/' . $dirname) && file_exists($path . '/' . $dirname . '/skin.css')) {
+        $skin_options[$dirname] = $dirname;
+      }
     }
   }
   $element['slideshow_carousel_skin'] = array(

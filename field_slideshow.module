@@ -992,8 +992,8 @@ function template_preprocess_field_slideshow(&$variables) {
     }
   }
 
-  // Don't add controls if there's only one image
-  if (count($variables['items']) == 1) {
+  // Don't add controls if there is no image
+  if (!count($variables['items'])) {
     $variables['controls'] = '';
     $variables['pager'] = '';
   }

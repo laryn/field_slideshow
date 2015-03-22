@@ -890,8 +890,14 @@ function template_preprocess_field_slideshow(&$variables) {
 
   // Change order if needed
   if (isset($variables['order'])) {
-    if ($variables['order'] == 'reverse') $variables['items'] = array_reverse($variables['items']);
-    elseif ($variables['order'] == 'random') shuffle($variables['items']);
+    if ($variables['order'] == 'reverse') {
+      $variables['items'] = array_reverse($variables['items']);
+      $variables['pager']['#items'] = $variables['items'];
+    }
+    elseif ($variables['order'] == 'random') {
+      shuffle($variables['items']);
+      $variables['pager']['#items'] = $variables['items'];
+    }
   }
 
   // Generate slides

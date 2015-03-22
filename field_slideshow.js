@@ -190,8 +190,9 @@
 
       if (jQuery.isFunction($.fn.imagesLoaded)) {
         $('.field-slideshow').each(function() {
-          $('img',this).imagesLoaded(function($images) {
-            rebuild_max_height($images.parents('.field-slideshow'));
+          var field = this;
+          $(field).imagesLoaded(function() {
+            rebuild_max_height($(field));
           });
         });
       }

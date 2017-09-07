@@ -690,10 +690,12 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       $items[$delta] = (array) field_collection_field_get_entity($item);
       $items[$delta]['type'] = 'field_collection_item';
       if ($settings['slideshow_content_type'] == 'image') {
-        $items[$delta]['uri'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['uri'];
-        $items[$delta]['title'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['title'];
-        $items[$delta]['alt'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['alt'];
-        $items[$delta]['type'] = 'image';
+        if (!empty($items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['uri'])) {
+          $items[$delta]['uri'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['uri'];
+          $items[$delta]['title'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['title'];
+          $items[$delta]['alt'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['alt'];
+          $items[$delta]['type'] = 'image';
+        }
       }
       else {
         $items[$delta]['view_mode'] = (empty($settings['slideshow_view_mode']) ? 'full' : $settings['slideshow_view_mode']);

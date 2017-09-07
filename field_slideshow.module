@@ -671,21 +671,29 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
 
   $element = array();
 
+  if ($field['type'] == 'image') {
+    foreach ($items as $delta => $item) {
+      $items[$delta]['type'] = 'image';
+    }
+  }
   // Media field support
   if ($field['type'] == 'media') {
     foreach ($items as $delta => $item) {
       $items[$delta] = (array) $item;
       $items[$delta]['uri'] = $item['file']->uri;
+      $items[$delta]['type'] = 'media';
     }
   }
   // Field Collection support
   elseif ($field['type'] == 'field_collection') {
     foreach ($items as $delta => $item) {
       $items[$delta] = (array) field_collection_field_get_entity($item);
+      $items[$delta]['type'] = 'field_collection_item';
       if ($settings['slideshow_content_type'] == 'image') {
         $items[$delta]['uri'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['uri'];
         $items[$delta]['title'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['title'];
         $items[$delta]['alt'] = $items[$delta][$settings['slideshow_field_collection_image']][$langcode][0]['alt'];
+        $items[$delta]['type'] = 'image';
       }
       else {
         $items[$delta]['view_mode'] = (empty($settings['slideshow_view_mode']) ? 'full' : $settings['slideshow_view_mode']);
@@ -1022,8 +1030,6 @@ function template_preprocess_field_slideshow(&$variables) {
           );
         }
       }
-
-
       // If the theme function hasn't added width and height attributes to the image, add them
       if ($item["type"] == 'image' && strpos($variables['items'][$num]['image'], 'width=') === FALSE) {
         $variables['items'][$num]['image'] = drupal_substr($variables['items'][$num]['image'], 0, -2) . "width=\"$dimensions[width]\" height=\"$dimensions[height]\" />";

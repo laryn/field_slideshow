@@ -1,9 +1,9 @@
 name = Field Slideshow
 description = Provides a Slideshow format for displaying Image or Media fields.
-core = 7.x
+backdrop = 1.x
+type = module
 package = Fields
 
 dependencies[] = image
 dependencies[] = libraries
 
-files[] = field_slideshow.module

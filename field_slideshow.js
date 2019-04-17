@@ -1,5 +1,5 @@
 (function($) {
-  Drupal.behaviors.field_slideshow = {
+  Backdrop.behaviors.field_slideshow = {
     attach: function(context) {
       // Resize video (iframe, object, embed)
       var resize_videos = function(context, max_width) {
@@ -48,8 +48,8 @@
         }
       };
 
-      for (i in Drupal.settings.field_slideshow) {
-        var settings = Drupal.settings.field_slideshow[i],
+      for (i in Backdrop.settings.field_slideshow) {
+        var settings = Backdrop.settings.field_slideshow[i],
           slideshow = $('div.' + i),
           num_slides = slideshow.children().length,
           $this = false;

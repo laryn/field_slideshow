@@ -46,7 +46,6 @@ function field_slideshow_field_formatter_info() {
         'slideshow_carousel_circular' => 0,
         'slideshow_carousel_follow' => 0,
         'slideshow_field_collection_image' => '',
-        'slideshow_carousel_skin' => '',
       ),
     ),
   );
@@ -449,32 +448,6 @@ function field_slideshow_field_formatter_settings_form($field, $instance, $view_
     ),
   );
 
-  $skin_options = array();
-  if (($library = libraries_load('jquery.carousel')) && !empty($library['loaded'])) {
-    $path = libraries_get_path('jquery.jcarousel') . '/skins';
-    if (is_dir($path)) {
-      $dirnames = scandir($path);
-      foreach ($dirnames as $dirname) {
-        $dirname = check_plain($dirname);
-        if (is_dir($path . '/' . $dirname) && file_exists($path . '/' . $dirname . '/skin.css')) {
-          $skin_options[$dirname] = $dirname;
-        }
-      }
-    }
-  }
-  $element['slideshow_carousel_skin'] = array(
-    '#title' => t('Carousel Skin'),
-    '#type' => 'select',
-    '#default_value' => $settings['slideshow_carousel_skin'],
-    '#options' => $skin_options,
-    '#empty_option' => t('None'),
-    '#states' => array(
-      'visible' => array(
-        ':input[name$="[settings_edit_form][settings][slideshow_pager]"]' => array('value' => 'carousel'),
-      ),
-    ),
-  );
-
   $element['slideshow_carousel_follow'] = array(
     '#title' => t('Follow active slide'),
     '#type' => 'checkbox',
@@ -657,9 +630,6 @@ function field_slideshow_field_formatter_settings_summary($field, $instance, $vi
       $pager_image_message .= ', ' . t('Number of visible images: @visible', array('@visible' => $settings['slideshow_carousel_visible']));
       $pager_image_message .= ', ' . t('Number of images to scroll by: @scroll', array('@scroll' => $settings['slideshow_carousel_scroll']));
       $pager_image_message .= ', ' . t('Transition speed: @speed', array('@speed' => $settings['slideshow_carousel_speed']));
-      if ($settings['slideshow_carousel_skin']) {
-        $pager_image_message .= ', ' . t('Skin: @skin', array('@skin' => $settings['slideshow_carousel_skin']));
-      }
       if ($settings['slideshow_carousel_vertical']) {
         $pager_image_message .= ', ' . t('Vertical');
       }
@@ -732,25 +702,12 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
     $settings['slideshow_start_on_hover'] = 0;
   }
 
-  if (!isset($settings['slideshow_carousel_skin'])) {
-    $settings['slideshow_carousel_skin'] = '';
-  }
-
   // Check plugins
-  if (module_exists('libraries')) {
-    $path = libraries_get_path('jquery.cycle');
-    if (!file_exists($path . '/jquery.cycle.all.min.js') && !file_exists($path . '/jquery.cycle.all.js')) {
-      backdrop_set_message(t('JQuery Cycle must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))), 'warning', FALSE);
-    }
-    if ($settings['slideshow_pager'] == 'carousel') {
-      $path = libraries_get_path('jquery.jcarousel');
-      if (!file_exists($path . '/lib/jquery.jcarousel.min.js') && !file_exists($path . '/lib/jquery.jcarousel.js')) {
-        backdrop_set_message(t('JCarousel must be installed in order to run the slideshow. Please go to !page for instructions.', array('!page' => l(t('Status Report'), 'admin/reports/status'))), 'warning', FALSE);
-      }
-    }
+  if (!module_exists('views_slideshow_cycle2')) {
+    backdrop_set_message(t('JQuery Cycle2 must be installed in order to run the slideshow. Please install the !name module.', array('!name' => l(t('Views Slideshow Cycle2'), 'admin/modules/install'))), 'warning', FALSE);
   }
-  else {
-    backdrop_set_message(t('Please install the !module module in order to use Field Slideshow.', array('!module' => l('Libraries API', 'http://drupal.org/project/libraries'))), 'warning', FALSE);
+  if ($settings['slideshow_pager'] == 'carousel' && !module_exists('jcarousel')) {
+    backdrop_set_message(t('JCarousel must be installed in order to run the slideshow. Please install the !name module.', array('!name' => l(t('jCarousel'), 'admin/modules/install'))), 'warning', FALSE);
   }
 
   $element = array();
@@ -927,7 +884,6 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
       '#pager_image_style' => $settings['slideshow_pager_image_style'],
       '#carousel_image_style' => $settings['slideshow_carousel_image_style'],
       '#slideshow_id' => $slideshow_count,
-      '#carousel_skin' => $settings['slideshow_carousel_skin'],
     );
     $controls = array(
       '#theme' => 'field_slideshow_controls',
@@ -958,7 +914,6 @@ function field_slideshow_field_formatter_view($entity_type, $entity, $field, $in
         'carousel_vertical' => $settings['slideshow_carousel_vertical'],
         'carousel_circular' => $settings['slideshow_carousel_circular'],
         'carousel_follow' => $settings['slideshow_carousel_follow'],
-        'carousel_skin' => $settings['slideshow_carousel_skin'],
         // Need to access the following variables in js too
         'pager' => $settings['slideshow_pager'],
         'controls' => ($settings['slideshow_controls'] === 1 ? $controls : array()),
@@ -1009,7 +964,6 @@ function field_slideshow_theme() {
         'pager_image_style' => NULL,
         'carousel_image_style' => NULL,
         'slideshow_id' => NULL,
-        'carousel_skin' => NULL,
       ),
       'template' => 'field_slideshow_pager',
     ),
@@ -1026,38 +980,23 @@ function template_preprocess_field_slideshow(&$variables) {
   backdrop_add_js(array('field_slideshow' => array('field-slideshow-' . $variables['slideshow_id'] => $js_variables)), 'setting');
 
   // Add the JQuery plugins and the JS code
-  if (module_exists('libraries')) {
-    $path = libraries_get_path('jquery.cycle');
-    if (file_exists($path . '/jquery.cycle.all.min.js')) {
-      backdrop_add_js($path . '/jquery.cycle.all.min.js');
-    }
-    elseif (file_exists($path . '/jquery.cycle.all.js')) {
-      backdrop_add_js($path . '/jquery.cycle.all.js');
-    }
-
-    if (isset($js_variables['pager']) && $js_variables['pager'] == 'carousel') {
-      $path = libraries_get_path('jquery.jcarousel');
-      if (file_exists($path . '/lib/jquery.jcarousel.min.js')) {
-        backdrop_add_js($path . '/lib/jquery.jcarousel.min.js');
-      }
-      elseif (file_exists($path . '/lib/jquery.jcarousel.js')) {
-        backdrop_add_js($path . '/lib/jquery.jcarousel.js');
-      }
-    }
-
-    $path = libraries_get_path('jquery.imagesloaded');
-    if (file_exists($path . '/jquery.imagesloaded.min.js')) {
-      backdrop_add_js($path . '/jquery.imagesloaded.min.js');
-    }
-    elseif (file_exists($path . '/jquery.imagesloaded.js')) {
-      backdrop_add_js($path . '/jquery.imagesloaded.js');
-    }
-
-    backdrop_add_js(backdrop_get_path('module', 'field_slideshow') . '/field_slideshow.js');
+  if (module_exists('views_slideshow_cycle2')) {
+    backdrop_add_library('views_slideshow_cycle2', 'cycle2');
   }
 
+  if (isset($js_variables['pager']) && $js_variables['pager'] == 'carousel' && module_exists('jcarousel')) {
+    backdrop_add_library('jcarousel', 'jcarousel');
+  }
+
+  if (module_exists('imagesloaded')) {
+    backdrop_add_library('imagesloaded', 'imagesloaded');
+  }
+
+  // Add js
+  backdrop_add_js(backdrop_get_path('module', 'field_slideshow') . '/js/field_slideshow.js');
+
   // Add css
-  backdrop_add_css(backdrop_get_path('module', 'field_slideshow') . '/field_slideshow.css');
+  backdrop_add_css(backdrop_get_path('module', 'field_slideshow') . '/css/field_slideshow.css');
 
   // Generate classes
   $variables['classes_array'][] = 'field-slideshow-' . $variables['slideshow_id'];
@@ -1217,10 +1156,9 @@ function template_preprocess_field_slideshow_pager(&$variables) {
 
     if ($variables['pager'] == 'carousel') {
       $thumbnail_style = $variables['carousel_image_style'];
-      $path = libraries_get_path('jquery.jcarousel');
-      if (isset($variables['carousel_skin']) && $variables['carousel_skin']) {
-        backdrop_add_css($path . '/skins/' . $variables['carousel_skin'] . '/skin.css');
-      }
+      $jcarousel = backdrop_get_library('jcarousel', 'jcarousel');
+      debug($jcarousel);
+      $path = '';
     }
     else {
       $thumbnail_style = $variables['pager_image_style'];

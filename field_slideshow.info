@@ -1,9 +1,13 @@
 name = Field Slideshow
-description = Provides a Slideshow format for displaying Image or Media fields.
+description = Provides a slideshow format for displaying Image or Media fields.
 backdrop = 1.x
 type = module
 package = Fields
 
 dependencies[] = image
-dependencies[] = libraries
+dependencies[] = imagesloaded
+dependencies[] = views_slideshow_cycle2
 
+tags[] = jquery
+tags[] = slideshow
+tags[] = media

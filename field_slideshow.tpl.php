@@ -19,7 +19,7 @@ if (!isset($pager_position)) {
   <?php if ($controls_position == "before")  print(render($controls)); ?>
   <?php if ($pager_position == "before")  print(render($pager)); ?>
 
-  <div class="<?php print $classes; ?>">
+  <div class="<?php print implode(' ', $classes); ?>"<?php print backdrop_attributes($attributes); ?>>
     <?php foreach ($items as $num => $item) : ?>
       <div class="<?php print $item['classes']; ?>"<?php if ($num) : ?> style="display:none;"<?php endif; ?>>
         <?php print (empty($item['image']) ? render($item['rendered_entity']) : $item['image']); ?>
